@@ -80,7 +80,7 @@
       "name": "Guan-guan Heartbeat - Every 10min",
       "enabled": true,
       "createdAtMs": 1773852570151,
-      "updatedAtMs": 1773920279309,
+      "updatedAtMs": 1773920893936,
       "schedule": {
         "everyMs": 600000,
         "kind": "every",
@@ -99,15 +99,14 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773920856067,
-        "lastRunAtMs": 1773920256067,
+        "nextRunAtMs": 1773921456085,
+        "lastRunAtMs": 1773920856085,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
-        "lastDurationMs": 23242,
+        "lastDurationMs": 37851,
         "lastDeliveryStatus": "not-delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": false,
-        "runningAtMs": 1773920856082
+        "lastDelivered": false
       }
     },
     {

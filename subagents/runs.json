@@ -53,8 +53,17 @@
       "createdAt": 1773921263743,
       "startedAt": 1773921264081,
       "archiveAtMs": 1773924863743,
-      "cleanupHandled": false,
-      "retainAttachmentsOnKeep": false
+      "cleanupHandled": true,
+      "retainAttachmentsOnKeep": false,
+      "endedAt": 1773921308889,
+      "outcome": {
+        "status": "ok"
+      },
+      "endedReason": "subagent-complete",
+      "frozenResultText": "**完成！**\n\n✅ **已执行操作：**\n1. 检查 git 状态，发现有 13 个文件变更 + 1 个未推送的提交\n2. 已将所有变更提交：`chore: update agents config and sessions`\n3. 已推送到远程仓库：`https://github.com/lingfeng-xiao/openclaw.git`\n\n📊 **推送详情：** main 分支从 `a03107a` 推进到 `91f3310`",
+      "frozenResultCapturedAt": 1773921309593,
+      "endedHookEmittedAt": 1773921314930,
+      "cleanupCompletedAt": 1773921314931
     }
   }
 }
