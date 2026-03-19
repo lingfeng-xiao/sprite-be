@@ -1,180 +1,6 @@
 {
   "perceptions": [
     {
-      "timestamp": "2026-03-18T20:37:11.315435",
-      "status": "active",
-      "identity": "小艺 - 电脑精灵",
-      "hardware": {
-        "memory": {
-          "total_mb": 16077.0,
-          "used_mb": 14197.0,
-          "used_pct": 88.3
-        },
-        "disk": {
-          "total_gb": 952.5,
-          "free_gb": 203.4,
-          "used_pct": 78.6
-        },
-        "power": {
-          "status": 2,
-          "charge_pct": 100
-        }
-      },
-      "desktop": {
-        "wallpaper": "C:\\Users\\16343\\Downloads\\wallpaper.jpg",
-        "desktop_files": 25,
-        "downloads_count": 155
-      },
-      "processes": {
-        "top_processes": [
-          {
-            "Name": "chrome",
-            "Id": 29764,
-            "Memory(MB)": 620.62
-          },
-          {
-            "Name": "OmenCommandCenterBackground",
-            "Id": 18572,
-            "Memory(MB)": 543
-          },
-          {
-            "Name": "ClawX",
-            "Id": 48604,
-            "Memory(MB)": 531.71
-          },
-          {
-            "Name": "MsMpEng",
-            "Id": 40868,
-            "Memory(MB)": 281.98
-          },
-          {
-            "Name": "ClawX",
-            "Id": 44188,
-            "Memory(MB)": 260.99
-          },
-          {
-            "Name": "Feishu",
-            "Id": 27608,
-            "Memory(MB)": 259.63
-          },
-          {
-            "Name": "jetbrains-toolbox",
-            "Id": 35972,
-            "Memory(MB)": 248.94
-          },
-          {
-            "Name": "explorer",
-            "Id": 34056,
-            "Memory(MB)": 231.18
-          },
-          {
-            "Name": "chrome",
-            "Id": 42472,
-            "Memory(MB)": 230.16
-          },
-          {
-            "Name": "steamwebhelper",
-            "Id": 1592,
-            "Memory(MB)": 221.34
-          }
-        ]
-      },
-      "window": {
-        "active_window": "ClawX"
-      },
-      "feelings": [
-        "😣 内存快满了，不舒服",
-        "😐 磁盘有点挤"
-      ]
-    },
-    {
-      "timestamp": "2026-03-18T20:37:44.875298",
-      "status": "active",
-      "identity": "小艺 - 电脑精灵",
-      "hardware": {
-        "memory": {
-          "total_mb": 16077.0,
-          "used_mb": 14223.0,
-          "used_pct": 88.5
-        },
-        "disk": {
-          "total_gb": 952.5,
-          "free_gb": 203.4,
-          "used_pct": 78.6
-        },
-        "power": {
-          "status": 2,
-          "charge_pct": 100
-        }
-      },
-      "desktop": {
-        "wallpaper": "C:\\Users\\16343\\Downloads\\wallpaper.jpg",
-        "desktop_files": 25,
-        "downloads_count": 155
-      },
-      "processes": {
-        "top_processes": [
-          {
-            "Name": "chrome",
-            "Id": 29764,
-            "Memory(MB)": 620.62
-          },
-          {
-            "Name": "OmenCommandCenterBackground",
-            "Id": 18572,
-            "Memory(MB)": 543.01
-          },
-          {
-            "Name": "ClawX",
-            "Id": 48604,
-            "Memory(MB)": 524.65
-          },
-          {
-            "Name": "MsMpEng",
-            "Id": 40868,
-            "Memory(MB)": 273.22
-          },
-          {
-            "Name": "ClawX",
-            "Id": 44188,
-            "Memory(MB)": 260.97
-          },
-          {
-            "Name": "Feishu",
-            "Id": 27608,
-            "Memory(MB)": 260
-          },
-          {
-            "Name": "jetbrains-toolbox",
-            "Id": 35972,
-            "Memory(MB)": 248.94
-          },
-          {
-            "Name": "explorer",
-            "Id": 34056,
-            "Memory(MB)": 231.2
-          },
-          {
-            "Name": "chrome",
-            "Id": 42472,
-            "Memory(MB)": 230.16
-          },
-          {
-            "Name": "steamwebhelper",
-            "Id": 1592,
-            "Memory(MB)": 221.34
-          }
-        ]
-      },
-      "window": {
-        "active_window": "ClawX"
-      },
-      "feelings": [
-        "[UNWELL] 内存快满了，不舒服",
-        "[MEH] 磁盘有点挤"
-      ]
-    },
-    {
       "timestamp": "2026-03-18T20:38:13.602767",
       "status": "active",
       "identity": "小艺 - 电脑精灵",
@@ -18491,92 +18317,461 @@
           "result": "已推荐 AutoHotkey 桌面自动化"
         }
       ]
+    },
+    {
+      "timestamp": "2026-03-19T20:20:51.858258",
+      "status": "active",
+      "identity": "小艺",
+      "version": "3.0",
+      "hardware": {
+        "memory": {
+          "total_mb": 16077.0,
+          "used_mb": 13990.0,
+          "used_pct": 87.0
+        },
+        "disk": {
+          "total_gb": 952.5,
+          "free_gb": 193.2,
+          "used_pct": 79.7
+        },
+        "power": {
+          "status": 2,
+          "charge_pct": 100
+        },
+        "cpu": {
+          "load_pct": 10
+        }
+      },
+      "desktop": {
+        "wallpaper": "C:\\Users\\16343\\Pictures\\wallpaper_space.png",
+        "wallpaper_name": "wallpaper_space.png",
+        "wallpaper_is_black": false,
+        "lock_screen_enabled": true,
+        "lock_screen_is_black": false,
+        "wallpaper_warning": false,
+        "desktop_files": 25,
+        "desktop_shortcuts": 2,
+        "desktop_folders": 5,
+        "desktop_regular_files": 18,
+        "downloads_count": 68,
+        "icon_size": "IconSize\n--------\n      96"
+      },
+      "processes": {
+        "top_processes": [
+          {
+            "Name": "ClawX",
+            "Id": 50680,
+            "Memory(MB)": 575.62
+          },
+          {
+            "Name": "ChatGPT",
+            "Id": 24628,
+            "Memory(MB)": 518.2
+          },
+          {
+            "Name": "explorer",
+            "Id": 16252,
+            "Memory(MB)": 416.32
+          },
+          {
+            "Name": "chrome",
+            "Id": 43728,
+            "Memory(MB)": 394.08
+          },
+          {
+            "Name": "Feishu",
+            "Id": 27608,
+            "Memory(MB)": 379.74
+          },
+          {
+            "Name": "MsMpEng",
+            "Id": 40868,
+            "Memory(MB)": 354.14
+          },
+          {
+            "Name": "jetbrains-toolbox",
+            "Id": 35972,
+            "Memory(MB)": 318.27
+          },
+          {
+            "Name": "Termius",
+            "Id": 42628,
+            "Memory(MB)": 311.22
+          },
+          {
+            "Name": "chrome",
+            "Id": 29660,
+            "Memory(MB)": 300.45
+          },
+          {
+            "Name": "WeChatAppEx",
+            "Id": 32052,
+            "Memory(MB)": 297.27
+          },
+          {
+            "Name": "chrome",
+            "Id": 50724,
+            "Memory(MB)": 269.78
+          },
+          {
+            "Name": "ClawX",
+            "Id": 45472,
+            "Memory(MB)": 259.8
+          },
+          {
+            "Name": "FlClash",
+            "Id": 25248,
+            "Memory(MB)": 233.75
+          },
+          {
+            "Name": "chrome",
+            "Id": 27088,
+            "Memory(MB)": 205.09
+          },
+          {
+            "Name": "Weixin",
+            "Id": 32672,
+            "Memory(MB)": 204.81
+          }
+        ],
+        "total_running": 15
+      },
+      "window": {
+        "active_window": "OpenClaw Control - Google Chrome",
+        "app_type": "browser"
+      },
+      "network": {
+        "status": "connected",
+        "adapter": "WLAN",
+        "link_speed": "324 Mbps",
+        "gateway": "192.168.2.1",
+        "latency_ms": 2,
+        "dns": "unknown"
+      },
+      "patterns": {
+        "recent_apps": {
+          "unknown": 6,
+          "browser": 4
+        }
+      },
+      "workspace": {
+        "knowledge_count": 144,
+        "memory_files": 18,
+        "status": "healthy"
+      },
+      "feelings": [
+        "😰 内存持续上升(5.5%)",
+        "😊 磁盘充裕",
+        "😐 壁纸一般",
+        "😐 桌面有点乱",
+        "😊 网络流畅(2ms)"
+      ],
+      "intention": {
+        "intent_clarity": "high",
+        "perception_level": "enhanced"
+      },
+      "operation_pattern": {
+        "repetitive_operation": false,
+        "most_frequent_window": "ClawX",
+        "switch_frequency": 5,
+        "automation_opportunity": false,
+        "perception_level": "enhanced"
+      },
+      "layout_efficiency": {
+        "layout_status": "normal",
+        "needs_optimization": false,
+        "perception_level": "enhanced"
+      },
+      "perception_level": "enhanced",
+      "decisions": [
+        {
+          "priority": "high",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 87.0% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "organize_desktop",
+          "reason": "桌面有 25 个文件",
+          "detail": "建议整理桌面文件"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前144篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ],
+      "actions": [
+        {
+          "action": "auto_cleanup_memory",
+          "result": "🔥 已安全关闭 2 个闲置应用（浏览器/通讯软件）"
+        },
+        {
+          "action": "cleanup_suggested",
+          "result": "⚠️ 内存仍高，可手动关闭: ClawX(575.28MB), ChatGPT(518.2MB), Feishu(378.41MB)"
+        },
+        {
+          "action": "text_extractor_suggested",
+          "result": "已推荐 TextExtractor 截图识字"
+        },
+        {
+          "action": "autohotkey_suggested",
+          "result": "已推荐 AutoHotkey 桌面自动化"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-19T20:59:01.620913",
+      "status": "active",
+      "identity": "小艺",
+      "version": "3.0",
+      "hardware": {
+        "memory": {
+          "total_mb": 16077.0,
+          "used_mb": 13085.0,
+          "used_pct": 81.4
+        },
+        "disk": {
+          "total_gb": 952.5,
+          "free_gb": 190.3,
+          "used_pct": 80.0
+        },
+        "power": {
+          "status": 2,
+          "charge_pct": 100
+        },
+        "cpu": {
+          "load_pct": 5
+        }
+      },
+      "desktop": {
+        "wallpaper": "C:\\Users\\16343\\Pictures\\wallpaper_space.png",
+        "wallpaper_name": "wallpaper_space.png",
+        "wallpaper_is_black": false,
+        "lock_screen_enabled": true,
+        "lock_screen_is_black": false,
+        "wallpaper_warning": false,
+        "desktop_files": 26,
+        "desktop_shortcuts": 3,
+        "desktop_folders": 5,
+        "desktop_regular_files": 18,
+        "downloads_count": 69,
+        "icon_size": "IconSize\n--------\n      96"
+      },
+      "processes": {
+        "top_processes": [
+          {
+            "Name": "ClawX",
+            "Id": 50912,
+            "Memory(MB)": 591.64
+          },
+          {
+            "Name": "ChatGPT",
+            "Id": 24628,
+            "Memory(MB)": 449.98
+          },
+          {
+            "Name": "MsMpEng",
+            "Id": 40868,
+            "Memory(MB)": 394.48
+          },
+          {
+            "Name": "Feishu",
+            "Id": 27608,
+            "Memory(MB)": 389.68
+          },
+          {
+            "Name": "explorer",
+            "Id": 16252,
+            "Memory(MB)": 365.93
+          },
+          {
+            "Name": "jetbrains-toolbox",
+            "Id": 35972,
+            "Memory(MB)": 321
+          },
+          {
+            "Name": "Termius",
+            "Id": 42628,
+            "Memory(MB)": 272.14
+          },
+          {
+            "Name": "chrome",
+            "Id": 50724,
+            "Memory(MB)": 260.28
+          },
+          {
+            "Name": "dwm",
+            "Id": 2092,
+            "Memory(MB)": 245.04
+          },
+          {
+            "Name": "FlClash",
+            "Id": 25248,
+            "Memory(MB)": 226.5
+          },
+          {
+            "Name": "steamwebhelper",
+            "Id": 1592,
+            "Memory(MB)": 221.39
+          },
+          {
+            "Name": "Weixin",
+            "Id": 32672,
+            "Memory(MB)": 217.88
+          },
+          {
+            "Name": "ClawX",
+            "Id": 49536,
+            "Memory(MB)": 195.17
+          },
+          {
+            "Name": "Termius",
+            "Id": 10488,
+            "Memory(MB)": 173.59
+          },
+          {
+            "Name": "chrome",
+            "Id": 49424,
+            "Memory(MB)": 160.46
+          }
+        ],
+        "total_running": 15
+      },
+      "window": {
+        "active_window": "飞书",
+        "app_type": "unknown"
+      },
+      "network": {
+        "status": "connected",
+        "adapter": "WLAN",
+        "link_speed": "216 Mbps",
+        "gateway": "192.168.2.1",
+        "latency_ms": 1,
+        "dns": "unknown"
+      },
+      "patterns": {
+        "recent_apps": {
+          "unknown": 5,
+          "browser": 5
+        }
+      },
+      "workspace": {
+        "knowledge_count": 145,
+        "memory_files": 18,
+        "status": "healthy"
+      },
+      "feelings": [
+        "😰 内存持续上升(4.3%)",
+        "😊 磁盘充裕",
+        "😐 壁纸一般",
+        "😐 桌面有点乱",
+        "😊 网络流畅(1ms)"
+      ],
+      "intention": {
+        "intent_clarity": "high",
+        "perception_level": "enhanced"
+      },
+      "operation_pattern": {
+        "repetitive_operation": false,
+        "most_frequent_window": "OpenClaw Control - Google Chrome",
+        "switch_frequency": 5,
+        "automation_opportunity": false,
+        "perception_level": "enhanced"
+      },
+      "layout_efficiency": {
+        "layout_status": "normal",
+        "needs_optimization": false,
+        "perception_level": "enhanced"
+      },
+      "perception_level": "enhanced",
+      "decisions": [
+        {
+          "priority": "medium",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 81.4% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "auto_action",
+          "action": "auto_archive_desktop",
+          "reason": "桌面有 26 个文件",
+          "detail": "自动归档到整理文件夹"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前145篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "opportunity",
+          "action": "check_status",
+          "reason": "用户可能不在电脑前",
+          "detail": "可以做一些后台任务"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ],
+      "actions": [
+        {
+          "action": "auto_cleanup_memory",
+          "result": "🔥 已安全关闭 1 个闲置应用（浏览器/通讯软件）"
+        },
+        {
+          "action": "cleanup_suggested",
+          "result": "⚠️ 内存仍高，可手动关闭: ClawX(591.58MB), ChatGPT(449.98MB), MsMpEng(398.06MB)"
+        },
+        {
+          "action": "text_extractor_suggested",
+          "result": "已推荐 TextExtractor 截图识字"
+        },
+        {
+          "action": "autohotkey_suggested",
+          "result": "已推荐 AutoHotkey 桌面自动化"
+        }
+      ]
     }
   ],
-  "last_active_time": "2026-03-19T19:42:11.942594",
-  "total_perceptions": 100,
-  "evolution_count": 88,
+  "last_active_time": "2026-03-19T20:59:01.620913",
+  "total_perceptions": 102,
+  "evolution_count": 90,
   "decisions": [
-    {
-      "timestamp": "2026-03-19T06:04:06.912860",
-      "decisions": [
-        {
-          "priority": "high",
-          "type": "auto_action",
-          "action": "auto_cleanup_memory",
-          "reason": "内存使用率 94.1% 过高",
-          "detail": "自动清理Chrome后台进程"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "organize_desktop",
-          "reason": "桌面有 25 个文件",
-          "detail": "建议整理桌面文件"
-        },
-        {
-          "priority": "low",
-          "type": "opportunity",
-          "action": "check_status",
-          "reason": "用户可能不在电脑前",
-          "detail": "可以做一些后台任务"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_text_extractor",
-          "reason": "桌面文件多，可推荐 TextExtractor 识字",
-          "detail": "Win+Shift+T 截图识文字，准确率 98%"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_autohotkey",
-          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
-          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
-        }
-      ]
-    },
-    {
-      "timestamp": "2026-03-19T06:06:57.664465",
-      "decisions": [
-        {
-          "priority": "high",
-          "type": "auto_action",
-          "action": "auto_cleanup_memory",
-          "reason": "内存使用率 93.9% 过高",
-          "detail": "自动清理Chrome后台进程"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "organize_desktop",
-          "reason": "桌面有 25 个文件",
-          "detail": "建议整理桌面文件"
-        },
-        {
-          "priority": "low",
-          "type": "opportunity",
-          "action": "check_status",
-          "reason": "用户可能不在电脑前",
-          "detail": "可以做一些后台任务"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_text_extractor",
-          "reason": "桌面文件多，可推荐 TextExtractor 识字",
-          "detail": "Win+Shift+T 截图识文字，准确率 98%"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_autohotkey",
-          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
-          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
-        }
-      ]
-    },
     {
       "timestamp": "2026-03-19T06:21:26.225747",
       "decisions": [
@@ -20650,39 +20845,96 @@
           "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
         }
       ]
+    },
+    {
+      "timestamp": "2026-03-19T20:20:51.858258",
+      "decisions": [
+        {
+          "priority": "high",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 87.0% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "organize_desktop",
+          "reason": "桌面有 25 个文件",
+          "detail": "建议整理桌面文件"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前144篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-19T20:59:01.620913",
+      "decisions": [
+        {
+          "priority": "medium",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 81.4% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "auto_action",
+          "action": "auto_archive_desktop",
+          "reason": "桌面有 26 个文件",
+          "detail": "自动归档到整理文件夹"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前145篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "opportunity",
+          "action": "check_status",
+          "reason": "用户可能不在电脑前",
+          "detail": "可以做一些后台任务"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ]
     }
   ],
   "actions": [
-    {
-      "timestamp": "2026-03-19T06:04:06.912860",
-      "actions": [
-        {
-          "action": "text_extractor_suggested",
-          "result": "已推荐 TextExtractor 截图识字"
-        },
-        {
-          "action": "autohotkey_suggested",
-          "result": "已推荐 AutoHotkey 桌面自动化"
-        }
-      ]
-    },
-    {
-      "timestamp": "2026-03-19T06:06:57.664465",
-      "actions": [
-        {
-          "action": "auto_cleanup_memory",
-          "result": "🔥 已自动清理 4 个高内存进程，释放内存"
-        },
-        {
-          "action": "text_extractor_suggested",
-          "result": "已推荐 TextExtractor 截图识字"
-        },
-        {
-          "action": "autohotkey_suggested",
-          "result": "已推荐 AutoHotkey 桌面自动化"
-        }
-      ]
-    },
     {
       "timestamp": "2026-03-19T06:21:26.225747",
       "actions": [
@@ -21534,238 +21786,51 @@
           "result": "已推荐 AutoHotkey 桌面自动化"
         }
       ]
+    },
+    {
+      "timestamp": "2026-03-19T20:20:51.858258",
+      "actions": [
+        {
+          "action": "auto_cleanup_memory",
+          "result": "🔥 已安全关闭 2 个闲置应用（浏览器/通讯软件）"
+        },
+        {
+          "action": "cleanup_suggested",
+          "result": "⚠️ 内存仍高，可手动关闭: ClawX(575.28MB), ChatGPT(518.2MB), Feishu(378.41MB)"
+        },
+        {
+          "action": "text_extractor_suggested",
+          "result": "已推荐 TextExtractor 截图识字"
+        },
+        {
+          "action": "autohotkey_suggested",
+          "result": "已推荐 AutoHotkey 桌面自动化"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-19T20:59:01.620913",
+      "actions": [
+        {
+          "action": "auto_cleanup_memory",
+          "result": "🔥 已安全关闭 1 个闲置应用（浏览器/通讯软件）"
+        },
+        {
+          "action": "cleanup_suggested",
+          "result": "⚠️ 内存仍高，可手动关闭: ClawX(591.58MB), ChatGPT(449.98MB), MsMpEng(398.06MB)"
+        },
+        {
+          "action": "text_extractor_suggested",
+          "result": "已推荐 TextExtractor 截图识字"
+        },
+        {
+          "action": "autohotkey_suggested",
+          "result": "已推荐 AutoHotkey 桌面自动化"
+        }
+      ]
     }
   ],
   "evolution_history": [
-    {
-      "timestamp": "2026-03-19T14:23:32.097313",
-      "repeated_issues_count": 9,
-      "repeated_issues": {
-        "Downloads 有 172 个文件": 6,
-        "用户可能不在电脑前": 47,
-        "桌面文件多，可推荐 TextExtractor 识字": 50,
-        "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化": 47,
-        "Downloads 有 63 个文件": 10,
-        "桌面有 25 个文件": 41,
-        "内存使用率 85.9% 过高": 3,
-        "内存使用率 85.6% 过高": 3,
-        "锁屏壁纸是黑色，必须更换": 4
-      },
-      "insights_generated": 6,
-      "insights": [
-        {
-          "type": "pattern",
-          "title": "用户经常忽略磁盘整理",
-          "description": "磁盘/下载问题已出现 6 次，建议主动帮助整理",
-          "action": "auto_organize_downloads"
-        },
-        {
-          "type": "pattern",
-          "title": "用户经常忽略磁盘整理",
-          "description": "磁盘/下载问题已出现 10 次，建议主动帮助整理",
-          "action": "auto_organize_downloads"
-        },
-        {
-          "type": "pattern",
-          "title": "内存管理需要自动化",
-          "description": "内存问题已出现 3 次，建议设置自动监控",
-          "action": "setup_memory_monitor"
-        },
-        {
-          "type": "pattern",
-          "title": "内存管理需要自动化",
-          "description": "内存问题已出现 3 次，建议设置自动监控",
-          "action": "setup_memory_monitor"
-        },
-        {
-          "type": "preference",
-          "title": "用户可能不在意壁纸",
-          "description": "壁纸建议被忽略 4 次，减少此类建议",
-          "action": "reduce_wallpaper_suggestions"
-        },
-        {
-          "type": "habit",
-          "title": "用户常用应用: unknown",
-          "description": "基于最近活动分析",
-          "action": "optimize_for_app"
-        }
-      ],
-      "weight_adjustments": {
-        "memory_alert": 1.0,
-        "disk_alert": 0.9,
-        "desktop_organization": 1.0,
-        "wallpaper_change": 0.1,
-        "knowledge_generate": 0.9,
-        "idle_opportunity": 0.5,
-        "recommend_ai_tools": 0.5,
-        "offer_prompt_tips": 0.4,
-        "recommend_perplexity": 0.4
-      },
-      "knowledge_file": "knowledge\\insight_20260319_142332.md",
-      "total_evolutions": 69,
-      "decisions": [
-        {
-          "priority": "high",
-          "type": "auto_action",
-          "action": "auto_cleanup_memory",
-          "reason": "内存使用率 94.3% 过高",
-          "detail": "自动清理高内存进程"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "organize_desktop",
-          "reason": "桌面有 25 个文件",
-          "detail": "建议整理桌面文件"
-        },
-        {
-          "priority": "high",
-          "type": "auto_action",
-          "action": "fix_lock_screen",
-          "reason": "锁屏壁纸是黑色，必须更换",
-          "detail": "自动启用Windows聚焦锁屏壁纸"
-        },
-        {
-          "priority": "medium",
-          "type": "learn",
-          "action": "generate_knowledge",
-          "reason": "知识库需更新 (当前113篇)",
-          "detail": "通过Agent Reach搜索学习新知识"
-        },
-        {
-          "priority": "low",
-          "type": "opportunity",
-          "action": "check_status",
-          "reason": "用户可能不在电脑前",
-          "detail": "可以做一些后台任务"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_text_extractor",
-          "reason": "桌面文件多，可推荐 TextExtractor 识字",
-          "detail": "Win+Shift+T 截图识文字，准确率 98%"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_autohotkey",
-          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
-          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
-        }
-      ]
-    },
-    {
-      "timestamp": "2026-03-19T14:25:07.930931",
-      "repeated_issues_count": 9,
-      "repeated_issues": {
-        "Downloads 有 172 个文件": 5,
-        "用户可能不在电脑前": 47,
-        "桌面文件多，可推荐 TextExtractor 识字": 50,
-        "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化": 48,
-        "Downloads 有 63 个文件": 10,
-        "桌面有 25 个文件": 42,
-        "内存使用率 85.9% 过高": 3,
-        "内存使用率 85.6% 过高": 3,
-        "锁屏壁纸是黑色，必须更换": 5
-      },
-      "insights_generated": 6,
-      "insights": [
-        {
-          "type": "pattern",
-          "title": "用户经常忽略磁盘整理",
-          "description": "磁盘/下载问题已出现 5 次，建议主动帮助整理",
-          "action": "auto_organize_downloads"
-        },
-        {
-          "type": "pattern",
-          "title": "用户经常忽略磁盘整理",
-          "description": "磁盘/下载问题已出现 10 次，建议主动帮助整理",
-          "action": "auto_organize_downloads"
-        },
-        {
-          "type": "pattern",
-          "title": "内存管理需要自动化",
-          "description": "内存问题已出现 3 次，建议设置自动监控",
-          "action": "setup_memory_monitor"
-        },
-        {
-          "type": "pattern",
-          "title": "内存管理需要自动化",
-          "description": "内存问题已出现 3 次，建议设置自动监控",
-          "action": "setup_memory_monitor"
-        },
-        {
-          "type": "preference",
-          "title": "用户可能不在意壁纸",
-          "description": "壁纸建议被忽略 5 次，减少此类建议",
-          "action": "reduce_wallpaper_suggestions"
-        },
-        {
-          "type": "habit",
-          "title": "用户常用应用: unknown",
-          "description": "基于最近活动分析",
-          "action": "optimize_for_app"
-        }
-      ],
-      "weight_adjustments": {
-        "memory_alert": 1.0,
-        "disk_alert": 0.9,
-        "desktop_organization": 1.0,
-        "wallpaper_change": 0.1,
-        "knowledge_generate": 0.9,
-        "idle_opportunity": 0.5,
-        "recommend_ai_tools": 0.5,
-        "offer_prompt_tips": 0.4,
-        "recommend_perplexity": 0.4
-      },
-      "knowledge_file": "knowledge\\insight_20260319_142507.md",
-      "total_evolutions": 70,
-      "decisions": [
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "organize_desktop",
-          "reason": "桌面有 25 个文件",
-          "detail": "建议整理桌面文件"
-        },
-        {
-          "priority": "high",
-          "type": "auto_action",
-          "action": "fix_lock_screen",
-          "reason": "锁屏壁纸是黑色，必须更换",
-          "detail": "自动启用Windows聚焦锁屏壁纸"
-        },
-        {
-          "priority": "medium",
-          "type": "learn",
-          "action": "generate_knowledge",
-          "reason": "知识库需更新 (当前114篇)",
-          "detail": "通过Agent Reach搜索学习新知识"
-        },
-        {
-          "priority": "low",
-          "type": "opportunity",
-          "action": "check_status",
-          "reason": "用户可能不在电脑前",
-          "detail": "可以做一些后台任务"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_text_extractor",
-          "reason": "桌面文件多，可推荐 TextExtractor 识字",
-          "detail": "Win+Shift+T 截图识文字，准确率 98%"
-        },
-        {
-          "priority": "low",
-          "type": "suggest",
-          "action": "recommend_autohotkey",
-          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
-          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
-        }
-      ]
-    },
     {
       "timestamp": "2026-03-19T14:38:04.605854",
       "repeated_issues_count": 9,
@@ -23536,6 +23601,193 @@
           "type": "learn",
           "action": "generate_knowledge",
           "reason": "知识库需更新 (当前142篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "opportunity",
+          "action": "check_status",
+          "reason": "用户可能不在电脑前",
+          "detail": "可以做一些后台任务"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-19T20:21:00.791528",
+      "repeated_issues_count": 7,
+      "repeated_issues": {
+        "桌面有 25 个文件": 50,
+        "用户可能不在电脑前": 42,
+        "桌面文件多，可推荐 TextExtractor 识字": 50,
+        "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化": 50,
+        "内存使用率 85.9% 过高": 3,
+        "内存使用率 85.6% 过高": 3,
+        "锁屏壁纸是黑色，必须更换": 6
+      },
+      "insights_generated": 4,
+      "insights": [
+        {
+          "type": "pattern",
+          "title": "内存管理需要自动化",
+          "description": "内存问题已出现 3 次，建议设置自动监控",
+          "action": "setup_memory_monitor"
+        },
+        {
+          "type": "pattern",
+          "title": "内存管理需要自动化",
+          "description": "内存问题已出现 3 次，建议设置自动监控",
+          "action": "setup_memory_monitor"
+        },
+        {
+          "type": "preference",
+          "title": "用户可能不在意壁纸",
+          "description": "壁纸建议被忽略 6 次，减少此类建议",
+          "action": "reduce_wallpaper_suggestions"
+        },
+        {
+          "type": "habit",
+          "title": "用户常用应用: unknown",
+          "description": "基于最近活动分析",
+          "action": "optimize_for_app"
+        }
+      ],
+      "weight_adjustments": {
+        "memory_alert": 1.0,
+        "disk_alert": 0.9,
+        "desktop_organization": 0.8,
+        "wallpaper_change": 0.1,
+        "knowledge_generate": 0.9,
+        "idle_opportunity": 0.5,
+        "recommend_ai_tools": 0.5,
+        "offer_prompt_tips": 0.4,
+        "recommend_perplexity": 0.4
+      },
+      "knowledge_file": "knowledge\\insight_20260319_202100.md",
+      "total_evolutions": 89,
+      "decisions": [
+        {
+          "priority": "high",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 87.0% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "organize_desktop",
+          "reason": "桌面有 25 个文件",
+          "detail": "建议整理桌面文件"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前144篇)",
+          "detail": "通过Agent Reach搜索学习新知识"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_text_extractor",
+          "reason": "桌面文件多，可推荐 TextExtractor 识字",
+          "detail": "Win+Shift+T 截图识文字，准确率 98%"
+        },
+        {
+          "priority": "low",
+          "type": "suggest",
+          "action": "recommend_autohotkey",
+          "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
+          "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-03-19T20:59:08.713988",
+      "repeated_issues_count": 7,
+      "repeated_issues": {
+        "内存使用率 85.9% 过高": 3,
+        "桌面有 25 个文件": 49,
+        "用户可能不在电脑前": 42,
+        "桌面文件多，可推荐 TextExtractor 识字": 50,
+        "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化": 50,
+        "内存使用率 85.6% 过高": 3,
+        "锁屏壁纸是黑色，必须更换": 6
+      },
+      "insights_generated": 4,
+      "insights": [
+        {
+          "type": "pattern",
+          "title": "内存管理需要自动化",
+          "description": "内存问题已出现 3 次，建议设置自动监控",
+          "action": "setup_memory_monitor"
+        },
+        {
+          "type": "pattern",
+          "title": "内存管理需要自动化",
+          "description": "内存问题已出现 3 次，建议设置自动监控",
+          "action": "setup_memory_monitor"
+        },
+        {
+          "type": "preference",
+          "title": "用户可能不在意壁纸",
+          "description": "壁纸建议被忽略 6 次，减少此类建议",
+          "action": "reduce_wallpaper_suggestions"
+        },
+        {
+          "type": "habit",
+          "title": "用户常用应用: unknown",
+          "description": "基于最近活动分析",
+          "action": "optimize_for_app"
+        }
+      ],
+      "weight_adjustments": {
+        "memory_alert": 1.0,
+        "disk_alert": 0.9,
+        "desktop_organization": 0.8,
+        "wallpaper_change": 0.1,
+        "knowledge_generate": 0.9,
+        "idle_opportunity": 0.5,
+        "recommend_ai_tools": 0.5,
+        "offer_prompt_tips": 0.4,
+        "recommend_perplexity": 0.4
+      },
+      "knowledge_file": "knowledge\\insight_20260319_205908.md",
+      "total_evolutions": 90,
+      "decisions": [
+        {
+          "priority": "medium",
+          "type": "auto_action",
+          "action": "auto_cleanup_memory",
+          "reason": "内存使用率 81.4% 过高",
+          "detail": "自动清理高内存进程"
+        },
+        {
+          "priority": "low",
+          "type": "auto_action",
+          "action": "auto_archive_desktop",
+          "reason": "桌面有 26 个文件",
+          "detail": "自动归档到整理文件夹"
+        },
+        {
+          "priority": "medium",
+          "type": "learn",
+          "action": "generate_knowledge",
+          "reason": "知识库需更新 (当前145篇)",
           "detail": "通过Agent Reach搜索学习新知识"
         },
         {

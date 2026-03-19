@@ -63,6 +63,10 @@
         }
       ],
       "apiKey": "MINIMAX_CN_API_KEY"
+    },
+    "github-copilot": {
+      "baseUrl": "https://api.individual.githubcopilot.com",
+      "models": []
     }
   }
 }

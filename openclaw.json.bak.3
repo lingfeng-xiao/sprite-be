@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-18T16:13:43.122Z"
+    "lastTouchedAt": "2026-03-18T16:13:50.256Z"
   },
   "browser": {
     "enabled": true,
@@ -230,6 +230,21 @@
       "enabled": true,
       "routing": {
         "rules": [
+          {
+            "name": "后助（后端开发）",
+            "agent": "hou-zu",
+            "when": {
+              "message.contains": [
+                "后端",
+                "代码",
+                "开发",
+                "后助",
+                "API",
+                "数据库",
+                "服务"
+              ]
+            }
+          },
           {
             "name": "面小助（面试辅导）",
             "agent": "mian-xiao-zhu",

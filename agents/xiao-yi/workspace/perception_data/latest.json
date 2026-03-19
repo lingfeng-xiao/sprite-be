@@ -1,25 +1,25 @@
 {
-  "timestamp": "2026-03-19T19:42:11.942594",
+  "timestamp": "2026-03-19T20:59:01.620913",
   "status": "active",
   "identity": "小艺",
   "version": "3.0",
   "hardware": {
     "memory": {
       "total_mb": 16077.0,
-      "used_mb": 14774.0,
-      "used_pct": 91.9
+      "used_mb": 13085.0,
+      "used_pct": 81.4
     },
     "disk": {
       "total_gb": 952.5,
-      "free_gb": 194.0,
-      "used_pct": 79.6
+      "free_gb": 190.3,
+      "used_pct": 80.0
     },
     "power": {
       "status": 2,
       "charge_pct": 100
     },
     "cpu": {
-      "load_pct": 6
+      "load_pct": 5
     }
   },
   "desktop": {
@@ -29,118 +29,118 @@
     "lock_screen_enabled": true,
     "lock_screen_is_black": false,
     "wallpaper_warning": false,
-    "desktop_files": 25,
-    "desktop_shortcuts": 2,
+    "desktop_files": 26,
+    "desktop_shortcuts": 3,
     "desktop_folders": 5,
     "desktop_regular_files": 18,
-    "downloads_count": 67,
+    "downloads_count": 69,
     "icon_size": "IconSize\n--------\n      96"
   },
   "processes": {
     "top_processes": [
       {
         "Name": "ClawX",
-        "Id": 22088,
-        "Memory(MB)": 518.58
+        "Id": 50912,
+        "Memory(MB)": 591.64
       },
       {
         "Name": "ChatGPT",
         "Id": 24628,
-        "Memory(MB)": 502.48
-      },
-      {
-        "Name": "chrome",
-        "Id": 26020,
-        "Memory(MB)": 419.09
-      },
-      {
-        "Name": "explorer",
-        "Id": 16252,
-        "Memory(MB)": 410.72
-      },
-      {
-        "Name": "Feishu",
-        "Id": 27608,
-        "Memory(MB)": 383.93
+        "Memory(MB)": 449.98
       },
       {
         "Name": "MsMpEng",
         "Id": 40868,
-        "Memory(MB)": 349.41
+        "Memory(MB)": 394.48
       },
       {
-        "Name": "WeChatAppEx",
-        "Id": 44764,
-        "Memory(MB)": 338.8
+        "Name": "Feishu",
+        "Id": 27608,
+        "Memory(MB)": 389.68
+      },
+      {
+        "Name": "explorer",
+        "Id": 16252,
+        "Memory(MB)": 365.93
+      },
+      {
+        "Name": "jetbrains-toolbox",
+        "Id": 35972,
+        "Memory(MB)": 321
       },
       {
         "Name": "Termius",
         "Id": 42628,
-        "Memory(MB)": 327.16
-      },
-      {
-        "Name": "chrome",
-        "Id": 17940,
-        "Memory(MB)": 321.64
-      },
-      {
-        "Name": "WeChatAppEx",
-        "Id": 32052,
-        "Memory(MB)": 313.02
+        "Memory(MB)": 272.14
       },
       {
         "Name": "chrome",
         "Id": 50724,
-        "Memory(MB)": 277.46
+        "Memory(MB)": 260.28
       },
       {
-        "Name": "ClawX",
-        "Id": 45472,
-        "Memory(MB)": 224.82
+        "Name": "dwm",
+        "Id": 2092,
+        "Memory(MB)": 245.04
       },
       {
         "Name": "FlClash",
         "Id": 25248,
-        "Memory(MB)": 221
+        "Memory(MB)": 226.5
+      },
+      {
+        "Name": "steamwebhelper",
+        "Id": 1592,
+        "Memory(MB)": 221.39
       },
       {
         "Name": "Weixin",
         "Id": 32672,
-        "Memory(MB)": 214.47
+        "Memory(MB)": 217.88
+      },
+      {
+        "Name": "ClawX",
+        "Id": 49536,
+        "Memory(MB)": 195.17
+      },
+      {
+        "Name": "Termius",
+        "Id": 10488,
+        "Memory(MB)": 173.59
       },
       {
         "Name": "chrome",
-        "Id": 41188,
-        "Memory(MB)": 191.65
+        "Id": 49424,
+        "Memory(MB)": 160.46
       }
     ],
     "total_running": 15
   },
   "window": {
-    "active_window": "ClawX",
+    "active_window": "飞书",
     "app_type": "unknown"
   },
   "network": {
     "status": "connected",
     "adapter": "WLAN",
-    "link_speed": "306 Mbps",
+    "link_speed": "216 Mbps",
     "gateway": "192.168.2.1",
     "latency_ms": 1,
     "dns": "unknown"
   },
   "patterns": {
     "recent_apps": {
-      "unknown": 6,
-      "browser": 4
+      "unknown": 5,
+      "browser": 5
     }
   },
   "workspace": {
-    "knowledge_count": 142,
-    "memory_files": 17,
+    "knowledge_count": 145,
+    "memory_files": 18,
     "status": "healthy"
   },
   "feelings": [
-    "💔 内存快炸了 (91%+)",
+    "😰 内存持续上升(4.3%)",
     "😊 磁盘充裕",
     "😐 壁纸一般",
     "😐 桌面有点乱",
@@ -152,8 +152,8 @@
   },
   "operation_pattern": {
     "repetitive_operation": false,
-    "most_frequent_window": "ClawX",
-    "switch_frequency": 4,
+    "most_frequent_window": "OpenClaw Control - Google Chrome",
+    "switch_frequency": 5,
     "automation_opportunity": false,
     "perception_level": "enhanced"
   },
@@ -165,24 +165,24 @@
   "perception_level": "enhanced",
   "decisions": [
     {
-      "priority": "high",
+      "priority": "medium",
       "type": "auto_action",
       "action": "auto_cleanup_memory",
-      "reason": "内存使用率 91.9% 过高",
+      "reason": "内存使用率 81.4% 过高",
       "detail": "自动清理高内存进程"
     },
     {
       "priority": "low",
-      "type": "suggest",
-      "action": "organize_desktop",
-      "reason": "桌面有 25 个文件",
-      "detail": "建议整理桌面文件"
+      "type": "auto_action",
+      "action": "auto_archive_desktop",
+      "reason": "桌面有 26 个文件",
+      "detail": "自动归档到整理文件夹"
     },
     {
       "priority": "medium",
       "type": "learn",
       "action": "generate_knowledge",
-      "reason": "知识库需更新 (当前142篇)",
+      "reason": "知识库需更新 (当前145篇)",
       "detail": "通过Agent Reach搜索学习新知识"
     },
     {
@@ -210,11 +210,11 @@
   "actions": [
     {
       "action": "auto_cleanup_memory",
-      "result": "🔥 已安全关闭 2 个闲置应用（浏览器/通讯软件）"
+      "result": "🔥 已安全关闭 1 个闲置应用（浏览器/通讯软件）"
     },
     {
       "action": "cleanup_suggested",
-      "result": "⚠️ 内存仍高，可手动关闭: ClawX(560.02MB), ChatGPT(502.48MB), Feishu(383.15MB)"
+      "result": "⚠️ 内存仍高，可手动关闭: ClawX(591.58MB), ChatGPT(449.98MB), MsMpEng(398.06MB)"
     },
     {
       "action": "text_extractor_suggested",
@@ -226,14 +226,14 @@
     }
   ],
   "evolution": {
-    "timestamp": "2026-03-19T19:42:19.765705",
+    "timestamp": "2026-03-19T20:59:08.713988",
     "repeated_issues_count": 7,
     "repeated_issues": {
-      "桌面有 25 个文件": 50,
-      "用户可能不在电脑前": 43,
+      "内存使用率 85.9% 过高": 3,
+      "桌面有 25 个文件": 49,
+      "用户可能不在电脑前": 42,
       "桌面文件多，可推荐 TextExtractor 识字": 50,
       "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化": 50,
-      "内存使用率 85.9% 过高": 3,
       "内存使用率 85.6% 过高": 3,
       "锁屏壁纸是黑色，必须更换": 6
     },
@@ -267,7 +267,7 @@
     "weight_adjustments": {
       "memory_alert": 1.0,
       "disk_alert": 0.9,
-      "desktop_organization": 0.8,
+      "desktop_organization": 0.9500000000000001,
       "wallpaper_change": 0.1,
       "knowledge_generate": 0.9,
       "idle_opportunity": 0.5,
@@ -275,28 +275,28 @@
       "offer_prompt_tips": 0.4,
       "recommend_perplexity": 0.4
     },
-    "knowledge_file": "knowledge\\insight_20260319_194219.md",
-    "total_evolutions": 88,
+    "knowledge_file": "knowledge\\insight_20260319_205908.md",
+    "total_evolutions": 90,
     "decisions": [
       {
-        "priority": "high",
+        "priority": "medium",
         "type": "auto_action",
         "action": "auto_cleanup_memory",
-        "reason": "内存使用率 91.9% 过高",
+        "reason": "内存使用率 81.4% 过高",
         "detail": "自动清理高内存进程"
       },
       {
         "priority": "low",
-        "type": "suggest",
-        "action": "organize_desktop",
-        "reason": "桌面有 25 个文件",
-        "detail": "建议整理桌面文件"
+        "type": "auto_action",
+        "action": "auto_archive_desktop",
+        "reason": "桌面有 26 个文件",
+        "detail": "自动归档到整理文件夹"
       },
       {
         "priority": "medium",
         "type": "learn",
         "action": "generate_knowledge",
-        "reason": "知识库需更新 (当前142篇)",
+        "reason": "知识库需更新 (当前145篇)",
         "detail": "通过Agent Reach搜索学习新知识"
       },
       {
@@ -320,6 +320,52 @@
         "reason": "用户使用电脑经验丰富，可推荐 AutoHotkey 自动化",
         "detail": "Windows 自动化脚本语言，快捷键、热字符串、窗口管理"
       }
-    ]
+    ],
+    "self_optimization": {
+      "analysis": {
+        "timestamp": "2026-03-19T20:59:08.759605",
+        "evolution_count": 90,
+        "sample_size": 1,
+        "knowledge_production": {
+          "total": 1,
+          "average": 3.72,
+          "target": 3,
+          "status": "good"
+        },
+        "decision_accuracy": {
+          "total_insights": 4,
+          "average": 4.0,
+          "target": 0.4,
+          "status": "good"
+        },
+        "closure_efficiency": {
+          "solved": 4,
+          "rate": 0.57,
+          "target": 0.9,
+          "status": "need_improve"
+        }
+      },
+      "adjustments": {
+        "desktop_org_weight": {
+          "old": 0.8,
+          "new": 0.9500000000000001
+        }
+      },
+      "new_config": {
+        "learning_time_ratio": 0.6,
+        "decision_weights": {
+          "memory_alert": 1.0,
+          "disk_alert": 0.9,
+          "desktop_organization": 0.9500000000000001,
+          "wallpaper_change": 0.1,
+          "knowledge_generate": 0.9,
+          "idle_opportunity": 0.5,
+          "recommend_ai_tools": 0.5,
+          "offer_prompt_tips": 0.4,
+          "recommend_perplexity": 0.4
+        }
+      },
+      "timestamp": "2026-03-19T20:59:08.759605"
+    }
   }
 }

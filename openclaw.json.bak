@@ -1,17 +1,13 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-18T16:41:15.221Z"
+    "lastTouchedAt": "2026-03-19T09:37:02.502Z"
   },
-  "browser": {
-    "enabled": true,
-    "defaultProfile": "user",
-    "connectionTimeoutMs": 60000,
-    "maxRetries": 3,
-    "healthCheck": {
-      "enabled": true,
-      "intervalMs": 30000
-    }
+  "wizard": {
+    "lastRunAt": "2026-03-19T09:37:02.322Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
   },
   "models": {
     "providers": {
@@ -323,17 +319,6 @@
     "auth": {
       "mode": "token",
       "token": "clawx-dcccac419b2580ddfa3dba51f361bb39"
-    },
-    "wsHandshakeTimeoutMs": 30000,
-    "healthCheck": {
-      "enabled": true,
-      "intervalMs": 30000
-    },
-    "process": {
-      "healthCheck": {
-        "enabled": true,
-        "staleTimeoutMs": 15000
-      }
     }
   },
   "plugins": {
@@ -351,23 +336,8 @@
       }
     }
   },
-  "diagnostics": {
+  "browser": {
     "enabled": true,
-    "logLevel": "debug",
-    "logRetentionDays": 30,
-    "includeInMemory": true,
-    "trackSlowOperations": true,
-    "slowOperationThresholdMs": 10000,
-    "gatewayHealthCheck": {
-      "enabled": true,
-      "intervalMs": 30000,
-      "timeoutMs": 10000
-    },
-    "sessionMetrics": {
-      "enabled": true,
-      "trackTurns": true,
-      "trackTools": true,
-      "trackTiming": true
-    }
+    "defaultProfile": "openclaw"
   }
 }

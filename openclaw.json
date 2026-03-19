@@ -1,13 +1,17 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-19T09:37:02.502Z"
+    "lastTouchedAt": "2026-03-19T12:05:56.239Z"
   },
   "wizard": {
-    "lastRunAt": "2026-03-19T09:37:02.322Z",
+    "lastRunAt": "2026-03-19T12:05:56.116Z",
     "lastRunVersion": "2026.3.13",
     "lastRunCommand": "doctor",
     "lastRunMode": "local"
+  },
+  "browser": {
+    "enabled": true,
+    "defaultProfile": "openclaw"
   },
   "models": {
     "providers": {
@@ -324,8 +328,8 @@
   "plugins": {
     "enabled": true,
     "allow": [
-      "openclaw-lark",
-      "minimax-portal-auth"
+      "minimax-portal-auth",
+      "openclaw-lark"
     ],
     "entries": {
       "openclaw-lark": {
@@ -333,11 +337,41 @@
       },
       "minimax-portal-auth": {
         "enabled": true
+      },
+      "feishu": {
+        "enabled": false
       }
     }
   },
-  "browser": {
-    "enabled": true,
-    "defaultProfile": "openclaw"
+  "session": {
+    "idleMinutes": 10080
+  },
+  "skills": {
+    "entries": {
+      "pdf": {
+        "enabled": true
+      },
+      "xlsx": {
+        "enabled": true
+      },
+      "docx": {
+        "enabled": true
+      },
+      "pptx": {
+        "enabled": true
+      },
+      "find-skills": {
+        "enabled": true
+      },
+      "self-improving-agent": {
+        "enabled": true
+      },
+      "tavily-search": {
+        "enabled": true
+      },
+      "brave-web-search": {
+        "enabled": true
+      }
+    }
   }
 }
