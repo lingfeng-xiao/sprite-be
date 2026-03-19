@@ -27,14 +27,15 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773921600000,
+        "nextRunAtMs": 1773922800000,
         "lastRunAtMs": 1773920400022,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
         "lastDurationMs": 96993,
         "lastDeliveryStatus": "delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": true
+        "lastDelivered": true,
+        "runningAtMs": 1773922654369
       }
     },
     {
@@ -63,14 +64,15 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773921600000,
+        "nextRunAtMs": 1773922800000,
         "lastRunAtMs": 1773920497015,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
         "lastDurationMs": 207733,
         "lastDeliveryStatus": "delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": true
+        "lastDelivered": true,
+        "runningAtMs": 1773922654369
       }
     },
     {
@@ -80,7 +82,7 @@
       "name": "Guan-guan Heartbeat - Every 10min",
       "enabled": true,
       "createdAtMs": 1773852570151,
-      "updatedAtMs": 1773920893936,
+      "updatedAtMs": 1773922317128,
       "schedule": {
         "everyMs": 600000,
         "kind": "every",
@@ -99,15 +101,14 @@
         "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
       },
       "state": {
-        "nextRunAtMs": 1773921456085,
-        "lastRunAtMs": 1773920856085,
+        "nextRunAtMs": 1773922883485,
+        "lastRunAtMs": 1773922283485,
         "lastRunStatus": "ok",
         "lastStatus": "ok",
-        "lastDurationMs": 37851,
+        "lastDurationMs": 33643,
         "lastDeliveryStatus": "not-delivered",
         "consecutiveErrors": 0,
-        "lastDelivered": false,
-        "runningAtMs": 1773921456093
+        "lastDelivered": false
       }
     },
     {
@@ -144,6 +145,44 @@
         "lastDeliveryStatus": "delivered",
         "consecutiveErrors": 0,
         "lastDelivered": true
+      }
+    },
+    {
+      "id": "auto-upload-github-001",
+      "agentId": "hou-zu",
+      "sessionKey": "agent:hou-zu:cron:auto-upload",
+      "name": "每小时自动上传GitHub",
+      "enabled": true,
+      "createdAtMs": 1773924720000,
+      "updatedAtMs": 1773924720000,
+      "schedule": {
+        "expr": "0 * * * *",
+        "kind": "cron",
+        "tz": "Asia/Shanghai",
+        "staggerMs": 300000
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "自动上传所有更改到 GitHub。执行: cd C:\\Users\\16343\\.openclaw && git add -A && git commit -m \"chore: 自动同步\" && git push",
+        "timeoutSeconds": 120
+      },
+      "delivery": {
+        "channel": "feishu",
+        "mode": "announce",
+        "to": "oc_887bdef216b66d0eb1934e2bb90758cf"
+      },
+      "state": {
+        "nextRunAtMs": 1773925200000,
+        "lastRunAtMs": 0,
+        "lastRunStatus": "pending",
+        "lastStatus": "pending",
+        "lastDurationMs": 0,
+        "lastDeliveryStatus": "pending",
+        "consecutiveErrors": 0,
+        "lastDelivered": false,
+        "runningAtMs": 1773922654369
       }
     }
   ]
