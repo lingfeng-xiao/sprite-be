@@ -11,7 +11,7 @@ _openclaw_root_completion() {
     "--profile[Use a named profile (isolates OPENCLAW_STATE_DIR/OPENCLAW_CONFIG_PATH under ~/.openclaw-<name>)]" \
     "--log-level[Global log level override for file + console (silent|fatal|error|warn|info|debug|trace)]" \
     "--no-color[Disable ANSI colors]" \
-    "1: :_values 'command' 'completion[Generate shell completion script]' 'setup[Initialize ~/.openclaw/openclaw.json and the agent workspace]' 'onboard[Interactive wizard to set up the gateway, workspace, and skills]' 'configure[Interactive setup wizard for credentials, channels, gateway, and agent defaults]' 'config[Non-interactive config helpers (get/set/unset/file/validate). Run without subcommand for the setup wizard.]' 'backup[Create and verify local backup archives for OpenClaw state]' 'doctor[Health checks + quick fixes for the gateway and channels]' 'dashboard[Open the Control UI with your current token]' 'reset[Reset local config/state (keeps the CLI installed)]' 'uninstall[Uninstall the gateway service + local data (CLI remains)]' 'message[Send, read, and manage messages and channel actions]' 'memory[Search, inspect, and reindex memory files]' 'agent[Run an agent turn via the Gateway (use --local for embedded)]' 'agents[Manage isolated agents (workspaces + auth + routing)]' 'status[Show channel health and recent session recipients]' 'health[Fetch health from the running gateway]' 'sessions[List stored conversation sessions]' 'browser[Manage OpenClaw'\''s dedicated browser (Chrome/Chromium)]' 'acp[Run an ACP bridge backed by the Gateway]' 'gateway[Run, inspect, and query the WebSocket Gateway]' 'daemon[Manage the Gateway service (launchd/systemd/schtasks)]' 'logs[Tail gateway file logs via RPC]' 'system[System tools (events, heartbeat, presence)]' 'models[Model discovery, scanning, and configuration]' 'approvals[Manage exec approvals (gateway or node host)]' 'nodes[Manage gateway-owned nodes (pairing, status, invoke, and media)]' 'devices[Device pairing and auth tokens]' 'node[Run and manage the headless node host service]' 'sandbox[Manage sandbox containers (Docker-based agent isolation)]' 'tui[Open a terminal UI connected to the Gateway]' 'cron[Manage cron jobs (via Gateway)]' 'dns[DNS helpers for wide-area discovery (Tailscale + CoreDNS)]' 'docs[Search the live OpenClaw docs]' 'hooks[Manage internal agent hooks]' 'webhooks[Webhook helpers and integrations]' 'qr[Generate an iOS pairing QR code and setup code]' 'clawbot[Legacy clawbot command aliases]' 'feishu-diagnose[运行飞书插件诊断，检查配置、连通性和权限状态]' 'pairing[Secure DM pairing (approve inbound requests)]' 'plugins[Manage OpenClaw plugins and extensions]' 'channels[Manage connected chat channels and accounts]' 'directory[Lookup contact and group IDs (self, peers, groups) for supported chat channels]' 'security[Audit local config and state for common security foot-guns]' 'secrets[Secrets runtime controls]' 'skills[List and inspect available skills]' 'update[Update OpenClaw and inspect update channel status]'" \
+    "1: :_values 'command' 'completion[Generate shell completion script]' 'setup[Initialize ~/.openclaw/openclaw.json and the agent workspace]' 'onboard[Interactive wizard to set up the gateway, workspace, and skills]' 'configure[Interactive setup wizard for credentials, channels, gateway, and agent defaults]' 'config[Non-interactive config helpers (get/set/unset/file/validate). Run without subcommand for the setup wizard.]' 'backup[Create and verify local backup archives for OpenClaw state]' 'doctor[Health checks + quick fixes for the gateway and channels]' 'dashboard[Open the Control UI with your current token]' 'reset[Reset local config/state (keeps the CLI installed)]' 'uninstall[Uninstall the gateway service + local data (CLI remains)]' 'message[Send, read, and manage messages and channel actions]' 'memory[Search, inspect, and reindex memory files]' 'agent[Run an agent turn via the Gateway (use --local for embedded)]' 'agents[Manage isolated agents (workspaces + auth + routing)]' 'status[Show channel health and recent session recipients]' 'health[Fetch health from the running gateway]' 'sessions[List stored conversation sessions]' 'browser[Manage OpenClaw'\''s dedicated browser (Chrome/Chromium)]' 'acp[Run an ACP bridge backed by the Gateway]' 'gateway[Run, inspect, and query the WebSocket Gateway]' 'daemon[Manage the Gateway service (launchd/systemd/schtasks)]' 'logs[Tail gateway file logs via RPC]' 'system[System tools (events, heartbeat, presence)]' 'models[Model discovery, scanning, and configuration]' 'approvals[Manage exec approvals (gateway or node host)]' 'nodes[Manage gateway-owned nodes (pairing, status, invoke, and media)]' 'devices[Device pairing and auth tokens]' 'node[Run and manage the headless node host service]' 'sandbox[Manage sandbox containers (Docker-based agent isolation)]' 'tui[Open a terminal UI connected to the Gateway]' 'cron[Manage cron jobs (via Gateway)]' 'dns[DNS helpers for wide-area discovery (Tailscale + CoreDNS)]' 'docs[Search the live OpenClaw docs]' 'hooks[Manage internal agent hooks]' 'webhooks[Webhook helpers and integrations]' 'qr[Generate an iOS pairing QR code and setup code]' 'clawbot[Legacy clawbot command aliases]' 'feishu-diagnose[运行飞书插件诊断，检查配置、连通性和权限状态]' 'memory-pro[Enhanced memory management commands (LanceDB Pro)]' 'reindex-fts[Rebuild the BM25 full-text search index]' 'pairing[Secure DM pairing (approve inbound requests)]' 'plugins[Manage OpenClaw plugins and extensions]' 'channels[Manage connected chat channels and accounts]' 'directory[Lookup contact and group IDs (self, peers, groups) for supported chat channels]' 'security[Audit local config and state for common security foot-guns]' 'secrets[Secrets runtime controls]' 'skills[List and inspect available skills]' 'update[Update OpenClaw and inspect update channel status]'" \
     "*::arg:->args"
 
   case $state in
@@ -55,6 +55,8 @@ _openclaw_root_completion() {
         (qr) _openclaw_qr ;;
         (clawbot) _openclaw_clawbot ;;
         (feishu-diagnose) _openclaw_feishu_diagnose ;;
+        (memory-pro) _openclaw_memory_pro ;;
+        (reindex-fts) _openclaw_reindex_fts ;;
         (pairing) _openclaw_pairing ;;
         (plugins) _openclaw_plugins ;;
         (channels) _openclaw_channels ;;
@@ -3406,6 +3408,149 @@ _openclaw_feishu_diagnose() {
   _arguments -C \
     "--trace[按 message_id 追踪完整处理链路]" \
     "--analyze[分析追踪日志（需配合 --trace 使用）]"
+}
+
+_openclaw_memory_pro_version() {
+  _arguments -C \
+    
+}
+
+_openclaw_memory_pro_list() {
+  _arguments -C \
+    "--scope[Filter by scope]" \
+    "--category[Filter by category]" \
+    "--limit[Maximum number of results]" \
+    "--offset[Number of results to skip]" \
+    "--json[Output as JSON]"
+}
+
+_openclaw_memory_pro_search() {
+  _arguments -C \
+    "--scope[Search within specific scope]" \
+    "--category[Filter by category]" \
+    "--limit[Maximum number of results]" \
+    "--json[Output as JSON]"
+}
+
+_openclaw_memory_pro_stats() {
+  _arguments -C \
+    "--scope[Stats for specific scope]" \
+    "--json[Output as JSON]"
+}
+
+_openclaw_memory_pro_delete() {
+  _arguments -C \
+    "--scope[Scope to delete from (for access control)]"
+}
+
+_openclaw_memory_pro_delete_bulk() {
+  _arguments -C \
+    "--scope[Scopes to delete from (required)]" \
+    "--before[Delete memories before this date (YYYY-MM-DD)]" \
+    "--dry-run[Show what would be deleted without actually deleting]"
+}
+
+_openclaw_memory_pro_export() {
+  _arguments -C \
+    "--scope[Export specific scope]" \
+    "--category[Export specific category]" \
+    "--output[Output file (default: stdout)]"
+}
+
+_openclaw_memory_pro_import() {
+  _arguments -C \
+    "--scope[Import into specific scope]" \
+    "--dry-run[Show what would be imported without actually importing]"
+}
+
+_openclaw_memory_pro_reembed() {
+  _arguments -C \
+    "--source-db[Source LanceDB database directory]" \
+    "--batch-size[Batch size for embedding calls]" \
+    "--limit[Limit number of rows to process (for testing)]" \
+    "--dry-run[Show what would be re-embedded without writing]" \
+    "--skip-existing[Skip entries whose id already exists in the target DB]" \
+    "--force[Allow using the same source-db as the target dbPath (DANGEROUS)]"
+}
+
+_openclaw_memory_pro_upgrade() {
+  _arguments -C \
+    "--dry-run[Show upgrade statistics without modifying data]" \
+    "--batch-size[Number of memories per batch]" \
+    "--no-llm[Skip LLM calls; use simple text truncation for L0/L1]" \
+    "--limit[Maximum number of memories to upgrade]" \
+    "--scope[Only upgrade memories in this scope]"
+}
+
+_openclaw_memory_pro_migrate_check() {
+  _arguments -C \
+    "--source[Specific source database path]"
+}
+
+_openclaw_memory_pro_migrate_run() {
+  _arguments -C \
+    "--source[Specific source database path]" \
+    "--default-scope[Default scope for migrated data]" \
+    "--dry-run[Show what would be migrated without actually migrating]" \
+    "--skip-existing[Skip entries that already exist]"
+}
+
+_openclaw_memory_pro_migrate_verify() {
+  _arguments -C \
+    "--source[Specific source database path]"
+}
+
+_openclaw_memory_pro_migrate() {
+  local -a commands
+  local -a options
+  
+  _arguments -C \
+     \
+    "1: :_values 'command' 'check[Check if migration is needed from legacy memory-lancedb]' 'run[Run migration from legacy memory-lancedb]' 'verify[Verify migration results]'" \
+    "*::arg:->args"
+
+  case $state in
+    (args)
+      case $line[1] in
+        (check) _openclaw_memory_pro_migrate_check ;;
+        (run) _openclaw_memory_pro_migrate_run ;;
+        (verify) _openclaw_memory_pro_migrate_verify ;;
+      esac
+      ;;
+  esac
+}
+
+_openclaw_memory_pro() {
+  local -a commands
+  local -a options
+  
+  _arguments -C \
+     \
+    "1: :_values 'command' 'version[Print plugin version]' 'list[List memories with optional filtering]' 'search[Search memories using hybrid retrieval]' 'stats[Show memory statistics]' 'delete[Delete a specific memory by ID]' 'delete-bulk[Bulk delete memories with filters]' 'export[Export memories to JSON]' 'import[Import memories from JSON file]' 'reembed[Re-embed memories from a source LanceDB database into the current target database]' 'upgrade[Upgrade legacy memories to new 6-category L0/L1/L2 smart memory format]' 'migrate[Migration utilities]'" \
+    "*::arg:->args"
+
+  case $state in
+    (args)
+      case $line[1] in
+        (version) _openclaw_memory_pro_version ;;
+        (list) _openclaw_memory_pro_list ;;
+        (search) _openclaw_memory_pro_search ;;
+        (stats) _openclaw_memory_pro_stats ;;
+        (delete) _openclaw_memory_pro_delete ;;
+        (delete-bulk) _openclaw_memory_pro_delete_bulk ;;
+        (export) _openclaw_memory_pro_export ;;
+        (import) _openclaw_memory_pro_import ;;
+        (reembed) _openclaw_memory_pro_reembed ;;
+        (upgrade) _openclaw_memory_pro_upgrade ;;
+        (migrate) _openclaw_memory_pro_migrate ;;
+      esac
+      ;;
+  esac
+}
+
+_openclaw_reindex_fts() {
+  _arguments -C \
+    
 }
 
 _openclaw_pairing_list() {

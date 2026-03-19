@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-19T12:05:56.239Z"
+    "lastTouchedAt": "2026-03-19T15:26:30.908Z"
   },
   "wizard": {
     "lastRunAt": "2026-03-19T12:05:56.116Z",
@@ -49,7 +49,8 @@
             "guan-guan",
             "xiao-yi",
             "mian-xiao-zhu",
-            "hou-zu"
+            "hou-zu",
+            "test-agent"
           ]
         }
       },
@@ -104,6 +105,49 @@
           "theme": "professional",
           "emoji": "💻"
         }
+      },
+      {
+        "id": "test-agent",
+        "name": "测试员",
+        "workspace": "C:\\Users\\16343\\.openclaw\\agents\\test-agent\\workspace",
+        "agentDir": "C:\\Users\\16343\\.openclaw\\agents\\test-agent",
+        "identity": {
+          "name": "测试员",
+          "emoji": "🧪"
+        }
+      },
+      {
+        "id": "chan-pin-jing-li",
+        "name": "品小帮（产品经理）",
+        "workspace": "C:\\Users\\16343\\.openclaw\\agents\\chan-pin-jing-li\\workspace",
+        "agentDir": "C:\\Users\\16343\\.openclaw\\agents\\chan-pin-jing-li",
+        "identity": {
+          "name": "品小帮",
+          "theme": "professional",
+          "emoji": "📋"
+        }
+      },
+      {
+        "id": "xiang-mu-jing-li",
+        "name": "项小管（项目经理）",
+        "workspace": "C:\\Users\\16343\\.openclaw\\agents\\xiang-mu-jing-li\\workspace",
+        "agentDir": "C:\\Users\\16343\\.openclaw\\agents\\xiang-mu-jing-li",
+        "identity": {
+          "name": "项小管",
+          "theme": "professional",
+          "emoji": "📊"
+        }
+      },
+      {
+        "id": "qian-duan-kai-fa",
+        "name": "前小端（前端开发）",
+        "workspace": "C:\\Users\\16343\\.openclaw\\agents\\qian-duan-kai-fa\\workspace",
+        "agentDir": "C:\\Users\\16343\\.openclaw\\agents\\qian-duan-kai-fa",
+        "identity": {
+          "name": "前小端",
+          "theme": "creative",
+          "emoji": "💻"
+        }
       }
     ]
   },
@@ -141,6 +185,9 @@
     "nativeSkills": "auto",
     "restart": true,
     "ownerDisplay": "raw"
+  },
+  "session": {
+    "idleMinutes": 10080
   },
   "hooks": {
     "internal": {
@@ -325,27 +372,6 @@
       "token": "clawx-dcccac419b2580ddfa3dba51f361bb39"
     }
   },
-  "plugins": {
-    "enabled": true,
-    "allow": [
-      "minimax-portal-auth",
-      "openclaw-lark"
-    ],
-    "entries": {
-      "openclaw-lark": {
-        "enabled": true
-      },
-      "minimax-portal-auth": {
-        "enabled": true
-      },
-      "feishu": {
-        "enabled": false
-      }
-    }
-  },
-  "session": {
-    "idleMinutes": 10080
-  },
   "skills": {
     "entries": {
       "pdf": {
@@ -371,6 +397,123 @@
       },
       "brave-web-search": {
         "enabled": true
+      },
+      "1password": {
+        "enabled": false
+      }
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "minimax-portal-auth",
+      "memory-lancedb",
+      "memory-lancedb-pro",
+      "openclaw-lark"
+    ],
+    "slots": {
+      "memory": "memory-lancedb-pro"
+    },
+    "entries": {
+      "openclaw-lark": {
+        "enabled": true
+      },
+      "minimax-portal-auth": {
+        "enabled": true
+      },
+      "feishu": {
+        "enabled": false
+      },
+      "memory-lancedb": {
+        "enabled": false,
+        "config": {
+          "embedding": {
+            "apiKey": "jina_845e5e4f38ce420daa89350577e9b33aJdOE95SAEfhFl4TWrpSmJgYNk-OY",
+            "model": "jina-embeddings-v5-text-small",
+            "dimensions": 1024
+          },
+          "autoCapture": true,
+          "autoRecall": true,
+          "captureMaxChars": 2000
+        }
+      },
+      "memory-lancedb-pro": {
+        "enabled": true,
+        "config": {
+          "embedding": {
+            "apiKey": "jina_845e5e4f38ce420daa89350577e9b33aJdOE95SAEfhFl4TWrpSmJgYNk-OY",
+            "model": "jina-embeddings-v5-text-small",
+            "baseURL": "https://api.jina.ai/v1",
+            "dimensions": 1024,
+            "taskQuery": "retrieval.query",
+            "taskPassage": "retrieval.passage",
+            "normalized": true
+          },
+          "llm": {
+            "apiKey": "sk-api-S0ffyP71FWQee31dWn2oYEYFDUI_nf_vC59V12cz1TbRet2YoeKKUAVHEZIrvo1-1I-nEONlO2amwrDPjX9erSDdnIZUwuV5Rxz7sydrdW9ayc5pCGUDxbY",
+            "model": "MiniMax-M2.5",
+            "baseURL": "https://api.minimax.chat/v1"
+          },
+          "autoCapture": true,
+          "autoRecall": true,
+          "smartExtraction": true,
+          "extractMinMessages": 5,
+          "extractMaxChars": 8000,
+          "retrieval": {
+            "mode": "hybrid",
+            "vectorWeight": 0.7,
+            "bm25Weight": 0.3,
+            "rerank": "none",
+            "minScore": 0.3,
+            "hardMinScore": 0.35
+          },
+          "scopes": {
+            "default": "global",
+            "agentAccess": {
+              "guan-guan": [
+                "global",
+                "agent:guan-guan",
+                "agent:xiao-yi",
+                "agent:mian-xiao-zhu",
+                "agent:hou-zu"
+              ],
+              "xiao-yi": [
+                "global",
+                "agent:xiao-yi"
+              ],
+              "mian-xiao-zhu": [
+                "global",
+                "agent:mian-xiao-zhu"
+              ],
+              "hou-zu": [
+                "global",
+                "agent:hou-zu"
+              ]
+            }
+          },
+          "mdMirror": {
+            "enabled": true,
+            "dir": "C:\\Users\\16343\\.openclaw\\agents\\guan-guan\\workspace\\memory-mirror"
+          }
+        }
+      },
+      "memory-core": {
+        "enabled": false
+      }
+    },
+    "installs": {
+      "memory-lancedb-pro": {
+        "source": "npm",
+        "spec": "memory-lancedb-pro@beta",
+        "installPath": "C:\\Users\\16343\\.openclaw\\extensions\\memory-lancedb-pro",
+        "version": "1.1.0-beta.9",
+        "resolvedName": "memory-lancedb-pro",
+        "resolvedVersion": "1.1.0-beta.9",
+        "resolvedSpec": "memory-lancedb-pro@1.1.0-beta.9",
+        "integrity": "sha512-Q1Ah6M/mNBHLyoFJBWWpn2EEwMa1YIJhlPIL4TPPEwvAbWnPtGTc19fJbdKDdT4rJs9DVC+2yy8p0anipHp+ag==",
+        "shasum": "7eb90e4a3fd72167558b0a5e50db3100552054c2",
+        "resolvedAt": "2026-03-19T15:26:18.090Z",
+        "installedAt": "2026-03-19T15:26:29.019Z"
       }
     }
   }

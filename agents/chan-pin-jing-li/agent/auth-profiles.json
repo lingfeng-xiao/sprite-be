@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "profiles": {
+    "minimax-portal:default": {
+      "type": "api_key",
+      "provider": "minimax-portal",
+      "key": "sk-cp-sjrNr2hy3sxvPoAVR5DqkP54Gw1Lr3SsdQVJmEo5fbvXNW_aAOJwMKPi6qaM0DeYGpmr4K9g_WT_QOReSwbgyen1-kvonftJQlmecNpNVqJFUu7gulC3GvU"
+    }
+  },
+  "order": {
+    "minimax-portal": [
+      "minimax-portal:default"
+    ]
+  },
+  "lastGood": {
+    "minimax-portal": "minimax-portal:default"
+  }
+}

@@ -1,23 +1,23 @@
 {
   "analysis": {
-    "timestamp": "2026-03-19T20:59:08.759605",
-    "evolution_count": 90,
+    "timestamp": "2026-03-20T02:06:40.580375",
+    "evolution_count": 105,
     "sample_size": 1,
     "knowledge_production": {
       "total": 1,
-      "average": 3.72,
+      "average": 4.44,
       "target": 3,
       "status": "good"
     },
     "decision_accuracy": {
-      "total_insights": 4,
-      "average": 4.0,
+      "total_insights": 2,
+      "average": 2.0,
       "target": 0.4,
       "status": "good"
     },
     "closure_efficiency": {
-      "solved": 4,
-      "rate": 0.57,
+      "solved": 2,
+      "rate": 0.33,
       "target": 0.9,
       "status": "need_improve"
     }
@@ -31,7 +31,7 @@
   "new_config": {
     "learning_time_ratio": 0.6,
     "decision_weights": {
-      "memory_alert": 1.0,
+      "memory_alert": 0.95,
       "disk_alert": 0.9,
       "desktop_organization": 0.9500000000000001,
       "wallpaper_change": 0.1,
@@ -42,5 +42,5 @@
       "recommend_perplexity": 0.4
     }
   },
-  "timestamp": "2026-03-19T20:59:08.759605"
+  "timestamp": "2026-03-20T02:06:40.580375"
 }

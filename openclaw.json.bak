@@ -1,13 +1,17 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-19T09:37:02.502Z"
+    "lastTouchedAt": "2026-03-19T14:36:44.610Z"
   },
   "wizard": {
-    "lastRunAt": "2026-03-19T09:37:02.322Z",
+    "lastRunAt": "2026-03-19T12:05:56.116Z",
     "lastRunVersion": "2026.3.13",
     "lastRunCommand": "doctor",
     "lastRunMode": "local"
+  },
+  "browser": {
+    "enabled": true,
+    "defaultProfile": "openclaw"
   },
   "models": {
     "providers": {
@@ -45,7 +49,8 @@
             "guan-guan",
             "xiao-yi",
             "mian-xiao-zhu",
-            "hou-zu"
+            "hou-zu",
+            "test-agent"
           ]
         }
       },
@@ -100,6 +105,16 @@
           "theme": "professional",
           "emoji": "💻"
         }
+      },
+      {
+        "id": "test-agent",
+        "name": "测试员",
+        "workspace": "C:\\Users\\16343\\.openclaw\\agents\\test-agent\\workspace",
+        "agentDir": "C:\\Users\\16343\\.openclaw\\agents\\test-agent",
+        "identity": {
+          "name": "测试员",
+          "emoji": "🧪"
+        }
       }
     ]
   },
@@ -137,6 +152,9 @@
     "nativeSkills": "auto",
     "restart": true,
     "ownerDisplay": "raw"
+  },
+  "session": {
+    "idleMinutes": 10080
   },
   "hooks": {
     "internal": {
@@ -321,23 +339,123 @@
       "token": "clawx-dcccac419b2580ddfa3dba51f361bb39"
     }
   },
+  "skills": {
+    "entries": {
+      "pdf": {
+        "enabled": true
+      },
+      "xlsx": {
+        "enabled": true
+      },
+      "docx": {
+        "enabled": true
+      },
+      "pptx": {
+        "enabled": true
+      },
+      "find-skills": {
+        "enabled": true
+      },
+      "self-improving-agent": {
+        "enabled": true
+      },
+      "tavily-search": {
+        "enabled": true
+      },
+      "brave-web-search": {
+        "enabled": true
+      },
+      "1password": {
+        "enabled": false
+      }
+    }
+  },
   "plugins": {
     "enabled": true,
     "allow": [
-      "openclaw-lark",
-      "minimax-portal-auth"
+      "minimax-portal-auth",
+      "memory-lancedb",
+      "memory-lancedb-pro",
+      "openclaw-lark"
     ],
+    "slots": {
+      "memory": "memory-lancedb-pro"
+    },
     "entries": {
       "openclaw-lark": {
         "enabled": true
       },
       "minimax-portal-auth": {
         "enabled": true
+      },
+      "feishu": {
+        "enabled": false
+      },
+      "memory-lancedb": {
+        "enabled": false,
+        "config": {
+          "embedding": {
+            "apiKey": "jina_845e5e4f38ce420daa89350577e9b33aJdOE95SAEfhFl4TWrpSmJgYNk-OY",
+            "model": "jina-embeddings-v5-text-small",
+            "dimensions": 1024
+          },
+          "autoCapture": true,
+          "autoRecall": true,
+          "captureMaxChars": 2000
+        }
+      },
+      "memory-lancedb-pro": {
+        "enabled": true,
+        "config": {
+          "embedding": {
+            "apiKey": "jina_845e5e4f38ce420daa89350577e9b33aJdOE95SAEfhFl4TWrpSmJgYNk-OY",
+            "model": "jina-embeddings-v5-text-small",
+            "baseURL": "https://api.jina.ai/v1",
+            "dimensions": 1024,
+            "taskQuery": "retrieval.query",
+            "taskPassage": "retrieval.passage",
+            "normalized": true
+          },
+          "autoCapture": true,
+          "autoRecall": true,
+          "retrieval": {
+            "mode": "hybrid",
+            "vectorWeight": 0.7,
+            "bm25Weight": 0.3,
+            "rerank": "none",
+            "minScore": 0.3,
+            "hardMinScore": 0.35
+          },
+          "scopes": {
+            "default": "global",
+            "agentAccess": {
+              "guan-guan": [
+                "global",
+                "agent:guan-guan",
+                "agent:xiao-yi",
+                "agent:mian-xiao-zhu",
+                "agent:hou-zu"
+              ],
+              "xiao-yi": [
+                "global",
+                "agent:xiao-yi"
+              ],
+              "mian-xiao-zhu": [
+                "global",
+                "agent:mian-xiao-zhu"
+              ],
+              "hou-zu": [
+                "global",
+                "agent:hou-zu"
+              ]
+            }
+          },
+          "mdMirror": {
+            "enabled": true,
+            "dir": "C:\\Users\\16343\\.openclaw\\agents\\guan-guan\\workspace\\memory-mirror"
+          }
+        }
       }
     }
-  },
-  "browser": {
-    "enabled": true,
-    "defaultProfile": "openclaw"
   }
 }

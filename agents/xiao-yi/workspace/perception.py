@@ -575,6 +575,185 @@ def perceive_layout_efficiency():
         "perception_level": "enhanced"
     }
 
+def perceive_startup_programs():
+    """
+    感知强化4: 启动项感知 (基于Windows系统优化知识)
+    检测开机自启动程序，优化开机速度
+    """
+    try:
+        # 获取注册表中的启动项
+        result = subprocess.run(
+            ['powershell', '-Command', 
+             'Get-CimInstance Win32_StartupCommand | Select Name, Command, Location | ConvertTo-Json'],
+            capture_output=True, text=True
+        )
+        
+        startup_items = []
+        if result.stdout and result.stdout.strip():
+            try:
+                data = json.loads(result.stdout)
+                if isinstance(data, dict):
+                    startup_items = [data]
+                else:
+                    startup_items = data
+            except:
+                startup_items = []
+        
+        # 统计启动项数量
+        startup_count = len(startup_items)
+        
+        # 判断是否需要优化（启动项过多会影响开机速度）
+        needs_optimization = startup_count > 10
+        
+        return {
+            "startup_count": startup_count,
+            "startup_items": startup_items[:5] if startup_items else [],  # 只返回前5个
+            "needs_optimization": needs_optimization,
+            "perception_level": "enhanced"
+        }
+    except Exception as e:
+        return {
+            "startup_count": 0,
+            "startup_items": [],
+            "needs_optimization": False,
+            "error": str(e),
+            "perception_level": "enhanced"
+        }
+
+def perceive_vbs_status():
+    """
+    感知强化5: VBS状态感知 (基于Windows安全知识)
+    检测Windows虚拟化安全(VBS)状态，优化性能
+    """
+    try:
+        # 检测VBS状态
+        result = subprocess.run(
+            ['powershell', '-Command', 
+             '(Get-ComputerInfo | Select-Object CsVirtualizationFirmwareEnabled, HypervisorPresent).CsVirtualizationFirmwareEnabled'],
+            capture_output=True, text=True
+        )
+        
+        vbs_enabled = result.stdout.strip().lower() == "true" if result.stdout else False
+        
+        # VBS开启会降低性能（但提高安全性）
+        # 如果用户关注性能，可以建议关闭
+        return {
+            "vbs_enabled": vbs_enabled,
+            "performance_impact": "high" if vbs_enabled else "none",
+            "recommendation": "disable" if vbs_enabled else "keep",
+            "perception_level": "enhanced"
+        }
+    except Exception as e:
+        return {
+            "vbs_enabled": "unknown",
+            "performance_impact": "unknown",
+            "recommendation": "check",
+            "error": str(e),
+            "perception_level": "enhanced"
+        }
+
+def perceive_power_plan():
+    """
+    感知强化6: 电源模式感知 (基于Windows电源管理知识)
+    检测当前电源计划，提供性能/续航建议
+    """
+    try:
+        # 获取当前电源计划
+        result = subprocess.run(
+            ['powershell', '-Command', 
+             '(Get-CimInstance -Namespace root/cimv2/power -ClassName Win32_PowerPlan | Where-Object {$_.IsActive -eq $true} | Select-Object InstanceID, ElementName).ElementName'],
+            capture_output=True, text=True
+        )
+        
+        power_plan = result.stdout.strip() if result.stdout else "未知"
+        
+        # 判断电源计划类型
+        plan_type = "balanced"
+        if "高性能" in power_plan or "High performance" in power_plan:
+            plan_type = "high_performance"
+        elif "节能" in power_plan or "Power saver" in power_plan:
+            plan_type = "power_saver"
+        elif "最佳功耗" in power_plan or "Power" in power_plan:
+            plan_type = "power_saver"
+        
+        # 根据电源计划给出建议
+        recommendation = "current"
+        hw = perceive_hardware()
+        battery = hw.get("power", {})
+        has_battery = battery.get("status", 1) != 2  # 1=AC, 2=电池
+        
+        if has_battery and plan_type == "high_performance":
+            recommendation = "switch_to_balanced"  # 笔记本用高性能太费电
+        elif not has_battery and plan_type == "power_saver":
+            recommendation = "switch_to_high"  # 台式机可以用高性能
+        
+        return {
+            "power_plan": power_plan,
+            "plan_type": plan_type,
+            "has_battery": has_battery,
+            "recommendation": recommendation,
+            "perception_level": "enhanced"
+        }
+    except Exception as e:
+        return {
+            "power_plan": "未知",
+            "plan_type": "unknown",
+            "has_battery": True,
+            "recommendation": "check",
+            "error": str(e),
+            "perception_level": "enhanced"
+        }
+
+def perceive_visual_effects():
+    """
+    感知强化7: 视觉效果感知 (基于Windows性能优化知识)
+    检测Windows视觉效果设置，优化性能/美观平衡
+    """
+    try:
+        # 获取视觉效果设置
+        result = subprocess.run(
+            ['powershell', '-Command', 
+             'Get-ItemProperty -Path "HKCU:\\Control Panel\\Desktop" -ErrorAction SilentlyContinue | '
+             'Select-Object MenuShowDelay, UserPreferencesMask | ConvertTo-Json'],
+            capture_output=True, text=True
+        )
+        
+        visual_settings = {}
+        if result.stdout and result.stdout.strip():
+            try:
+                data = json.loads(result.stdout)
+                visual_settings = {
+                    "menu_show_delay": data.get("MenuShowDelay", "unknown"),
+                    "user_preferences": data.get("UserPreferencesMask", "unknown")
+                }
+            except:
+                visual_settings = {}
+        
+        # 判断是否开启了透明效果（Aero）
+        has_aero = False
+        if visual_settings.get("user_preferences"):
+            # UserPreferencesMask的第2位表示透明效果
+            pref = str(visual_settings.get("user_preferences", ""))
+            if len(pref) > 2:
+                has_aero = pref[1] == "1" if pref[1].isdigit() else False
+        
+        return {
+            "visual_settings": visual_settings,
+            "has_aero_glass": has_aero,
+            "performance_impact": "medium" if has_aero else "low",
+            "recommendation": "optimize" if has_aero else "keep",
+            "perception_level": "enhanced"
+        }
+    except Exception as e:
+        return {
+            "visual_settings": {},
+            "has_aero_glass": "unknown",
+            "performance_impact": "unknown",
+            "recommendation": "check",
+            "error": str(e),
+            "perception_level": "enhanced"
+        }
+
 # ========== 第三层：决策引擎 ==========
 
 def decide(perception_data):
@@ -1136,6 +1315,10 @@ def perceive():
     intent_data = perceive_user_intent()       # 意图理解
     pattern_data = perceive_operation_pattern() # 操作模式识别
     layout_data = perceive_layout_efficiency() # 布局效率感知
+    startup_data = perceive_startup_programs()  # 启动项感知
+    vbs_data = perceive_vbs_status()           # VBS状态感知
+    power_data = perceive_power_plan()         # 电源模式感知
+    visual_data = perceive_visual_effects()    # 视觉效果感知
     
     # 构建感知数据
     perception = {
@@ -1151,6 +1334,10 @@ def perceive():
         "intention": intent_data,           # 强化：意图理解
         "operation_pattern": pattern_data,   # 强化：操作模式识别
         "layout_efficiency": layout_data,   # 强化：布局效率感知
+        "startup": startup_data,            # 强化：启动项感知
+        "vbs": vbs_data,                   # 强化：VBS状态感知
+        "power": power_data,               # 强化：电源模式感知
+        "visual": visual_data,             # 强化：视觉效果感知
         "perception_level": "enhanced",     # 标记为增强感知
         "decisions": [],
         "actions": []
