@@ -58,15 +58,30 @@ public class ReasoningEngine {
         List<ReasoningOutput> results = new ArrayList<>();
 
         if (llmReasoner != null) {
-            // 使用 LLM 进行推理
-            try {
-                Intent intent = llmReasoner.inferIntent(new IntentPrompt(
-                    context.situation(),
-                    context.recentActions(),
-                    context.ownerMood(),
-                    context.timeContext()
-                )).get();
+            // 并行启动所有 LLM 调用
+            CompletableFuture<Intent> intentFuture = llmReasoner.inferIntent(new IntentPrompt(
+                context.situation(),
+                context.recentActions(),
+                context.ownerMood(),
+                context.timeContext()
+            ));
 
+            CompletableFuture<CausalChain> causalFuture = llmReasoner.reasonCausal(new CausalPrompt(
+                context.situation(),
+                context.observations()
+            ));
+
+            CompletableFuture<Prediction> predictionFuture = llmReasoner.predict(new PredictionPrompt(
+                context.situation(),
+                context.recentActions()
+            ));
+
+            // 等待所有调用完成
+            CompletableFuture.allOf(intentFuture, causalFuture, predictionFuture).join();
+
+            // 收集结果
+            try {
+                Intent intent = intentFuture.get();
                 results.add(new ReasoningOutput(
                     ReasoningType.INTENT,
                     intent.description(),
@@ -83,11 +98,7 @@ public class ReasoningEngine {
             }
 
             try {
-                CausalChain causalChain = llmReasoner.reasonCausal(new CausalPrompt(
-                    context.situation(),
-                    context.observations()
-                )).get();
-
+                CausalChain causalChain = causalFuture.get();
                 results.add(new ReasoningOutput(
                     ReasoningType.CAUSAL,
                     causalChain.summary(),
@@ -104,11 +115,7 @@ public class ReasoningEngine {
             }
 
             try {
-                Prediction prediction = llmReasoner.predict(new PredictionPrompt(
-                    context.situation(),
-                    context.recentActions()
-                )).get();
-
+                Prediction prediction = predictionFuture.get();
                 results.add(new ReasoningOutput(
                     ReasoningType.PREDICTION,
                     prediction.description(),
