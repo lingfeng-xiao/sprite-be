@@ -2,6 +2,10 @@ package com.lingfeng.sprite.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +30,8 @@ import com.lingfeng.sprite.cognition.CognitionController;
  * 触发条件：
  * - 长时间无操作（>30分钟）
  * - 检测到主人情绪变化
+ * - 定时问候（早安、晚安等）
+ * - 基于上下文的主动建议
  * - 重要日程提醒
  * - 系统异常告警
  */
@@ -38,7 +44,13 @@ public class ProactiveService {
     private static final long IDLE_CHECK_INTERVAL_SECONDS = 60;
     private static final long IDLE_THRESHOLD_MINUTES = 30;
     private static final long MOOD_CHECK_INTERVAL_SECONDS = 120;
+    private static final long GREETING_CHECK_INTERVAL_SECONDS = 300; // 5分钟检查一次
     private static final float NEGATIVE_MOOD_THRESHOLD = -0.3f;
+
+    // 定时问候时间配置
+    private static final LocalTime MORNING_GREETING_TIME = LocalTime.of(9, 0);   // 早上9点
+    private static final LocalTime EVENING_GREETING_TIME = LocalTime.of(18, 0);  // 晚上6点
+    private static final LocalTime NIGHT_GREETING_TIME = LocalTime.of(22, 0);    // 晚上10点
 
     private final UnifiedContextService unifiedContextService;
     private final ConversationService conversationService;
@@ -48,7 +60,12 @@ public class ProactiveService {
     private final ConcurrentHashMap<String, Instant> lastActivityTime = new ConcurrentHashMap<>();
     private String lastMood = "平静";
     private Instant lastProactiveTime = Instant.now();
+    private Instant lastGreetingTime = Instant.now().minusSeconds(86400); // 默认昨天，以便第一次可以触发
     private static final Duration PROACTIVE_COOLDOWN = Duration.ofMinutes(15);
+    private static final ZoneId TIMEZONE = ZoneId.of("Asia/Shanghai");
+
+    // 上次发送的问候类型（用于避免重复）
+    private String lastGreetingType = "";
 
     public ProactiveService(
             @Autowired UnifiedContextService unifiedContextService,
@@ -75,6 +92,22 @@ public class ProactiveService {
             this::checkMoodChanges,
             MOOD_CHECK_INTERVAL_SECONDS,
             MOOD_CHECK_INTERVAL_SECONDS,
+            TimeUnit.SECONDS
+        );
+
+        // 定时问候检查
+        scheduler.scheduleAtFixedRate(
+            this::checkScheduledGreetings,
+            GREETING_CHECK_INTERVAL_SECONDS,
+            GREETING_CHECK_INTERVAL_SECONDS,
+            TimeUnit.SECONDS
+        );
+
+        // 上下文主动建议检查
+        scheduler.scheduleAtFixedRate(
+            this::checkContextualSuggestions,
+            IDLE_CHECK_INTERVAL_SECONDS,
+            IDLE_CHECK_INTERVAL_SECONDS,
             TimeUnit.SECONDS
         );
 
@@ -116,6 +149,113 @@ public class ProactiveService {
         } catch (Exception e) {
             logger.debug("Error checking idle status: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 检查定时问候
+     */
+    private void checkScheduledGreetings() {
+        try {
+            // 检查冷却时间
+            Duration sinceLastProactive = Duration.between(lastProactiveTime, Instant.now());
+            if (sinceLastProactive.compareTo(PROACTIVE_COOLDOWN) < 0) {
+                return;
+            }
+
+            // 检查是否在问候冷却期内（同一类型的问候至少间隔4小时）
+            Duration sinceLastGreeting = Duration.between(lastGreetingTime, Instant.now());
+            if (sinceLastGreeting.toHours() < 4) {
+                return;
+            }
+
+            LocalDateTime now = LocalDateTime.now(TIMEZONE);
+            LocalTime currentTime = now.toLocalTime();
+
+            // 检查是否满足问候时间
+            String greetingType = null;
+            if (isTimeInRange(currentTime, MORNING_GREETING_TIME, MORNING_GREETING_TIME.plusMinutes(30))
+                    && !lastGreetingType.equals("morning")) {
+                greetingType = "morning";
+            } else if (isTimeInRange(currentTime, EVENING_GREETING_TIME, EVENING_GREETING_TIME.plusMinutes(30))
+                    && !lastGreetingType.equals("evening")) {
+                greetingType = "evening";
+            } else if (isTimeInRange(currentTime, NIGHT_GREETING_TIME, NIGHT_GREETING_TIME.plusMinutes(30))
+                    && !lastGreetingType.equals("night")) {
+                greetingType = "night";
+            }
+
+            if (greetingType != null && shouldProactivelyContact()) {
+                lastGreetingType = greetingType;
+                triggerScheduledGreeting(greetingType);
+            }
+        } catch (Exception e) {
+            logger.debug("Error checking scheduled greetings: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 检查基于上下文的主动建议
+     */
+    private void checkContextualSuggestions() {
+        try {
+            // 检查冷却时间
+            Duration sinceLastProactive = Duration.between(lastProactiveTime, Instant.now());
+            if (sinceLastProactive.compareTo(PROACTIVE_COOLDOWN) < 0) {
+                return;
+            }
+
+            WorldModel.World world = unifiedContextService.getWorldModel();
+            if (world == null) {
+                return;
+            }
+
+            // 基于当前上下文生成建议
+            WorldModel.Context context = world.currentContext();
+            if (context != null && shouldProactivelyContact()) {
+                String suggestion = generateContextualSuggestion(context);
+                if (suggestion != null) {
+                    triggerContextualSuggestion(suggestion);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("Error checking contextual suggestions: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 生成基于上下文的建议
+     */
+    private String generateContextualSuggestion(WorldModel.Context context) {
+        // 根据时间生成建议
+        LocalDateTime now = LocalDateTime.now(TIMEZONE);
+        int hour = now.getHour();
+
+        // 工作时间建议
+        if (hour >= 9 && hour < 12 && context.activity() == WorldModel.Activity.WORK) {
+            return "上午工作效率黄金期，适合处理复杂任务。";
+        } else if (hour >= 14 && hour < 17 && context.activity() == WorldModel.Activity.WORK) {
+            return "下午容易疲劳，建议适时休息一下。";
+        }
+
+        // 基于注意力和紧迫度
+        if (context.attention() < 0.5f && context.urgency() < 0.3f) {
+            return "看起来有点累，要不要休息一下再来处理任务？";
+        } else if (context.urgency() > 0.8f && context.attention() < 0.3f) {
+            return "任务比较紧急，但状态不太好的话，可以先简单处理一下，剩下的交给我。";
+        }
+
+        // 基于位置上下文（如果有）
+        if (context.location() != null && !context.location().isEmpty()) {
+            if (context.location().contains("会议室") && context.attention() > 0.7f) {
+                return "会议中，我会保持安静。有需要随时叫我。";
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isTimeInRange(LocalTime current, LocalTime start, LocalTime end) {
+        return !current.isBefore(start) && !current.isAfter(end);
     }
 
     /**
@@ -210,6 +350,50 @@ public class ProactiveService {
 
         logger.info("Proactive message (mood={}): {}", mood, message);
         sendProactiveMessage(message);
+    }
+
+    /**
+     * 触发定时问候消息
+     */
+    private void triggerScheduledGreeting(String greetingType) {
+        lastProactiveTime = Instant.now();
+        lastGreetingTime = Instant.now();
+
+        String message = switch (greetingType) {
+            case "morning" -> {
+                LocalDateTime now = LocalDateTime.now(TIMEZONE);
+                int hour = now.getHour();
+                if (hour < 10) {
+                    yield "早安主人！新的一天开始了，今天有什么计划吗？";
+                } else {
+                    yield "上午好！工作进展怎么样？";
+                }
+            }
+            case "evening" -> {
+                LocalDateTime now = LocalDateTime.now(TIMEZONE);
+                int hour = now.getHour();
+                if (hour < 19) {
+                    yield "傍晚好！一天辛苦了，有没有需要我帮忙的？";
+                } else {
+                    yield "晚上好！今天过得怎么样？";
+                }
+            }
+            case "night" -> "夜深了，主人早点休息哦。有我在，别担心明天的任务。";
+            default -> "主人，您好！有什么我可以帮忙的吗？";
+        };
+
+        logger.info("Proactive greeting ({}): {}", greetingType, message);
+        sendProactiveMessage(message);
+    }
+
+    /**
+     * 触发上下文主动建议
+     */
+    private void triggerContextualSuggestion(String suggestion) {
+        lastProactiveTime = Instant.now();
+
+        logger.info("Proactive suggestion: {}", suggestion);
+        sendProactiveMessage(suggestion);
     }
 
     /**
