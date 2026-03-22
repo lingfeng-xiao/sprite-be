@@ -2,15 +2,21 @@ package com.lingfeng.sprite.service;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.lingfeng.sprite.MemorySystem.Memory;
 import com.lingfeng.sprite.action.ActionPlugin;
 import com.lingfeng.sprite.action.ActionResult;
+import com.lingfeng.sprite.action.Actions.CalculatorAction;
 import com.lingfeng.sprite.action.Actions.LogAction;
 import com.lingfeng.sprite.action.Actions.NotifyAction;
+import com.lingfeng.sprite.action.Actions.RecallMemoryAction;
+import com.lingfeng.sprite.action.Actions.RememberAction;
+import com.lingfeng.sprite.action.Actions.SearchFilesAction;
 
 /**
  * 动作执行器
@@ -23,13 +29,20 @@ public class ActionExecutor {
     private static final Logger logger = LoggerFactory.getLogger(ActionExecutor.class);
 
     private final Map<String, ActionPlugin> actionPlugins;
+    private final Memory memory;
 
-    public ActionExecutor() {
+    public ActionExecutor(Memory memory) {
+        this.memory = memory;
+
         // 注册内置动作
-        this.actionPlugins = Map.of(
-                "LogAction", new LogAction(),
-                "NotifyAction", new NotifyAction()
-        );
+        this.actionPlugins = new ConcurrentHashMap<>();
+        registerPlugin("LogAction", new LogAction());
+        registerPlugin("NotifyAction", new NotifyAction());
+        registerPlugin("Calculator", new CalculatorAction());
+        registerPlugin("SearchFiles", new SearchFilesAction());
+        registerPlugin("Remember", new RememberAction(memory));
+        registerPlugin("RecallMemory", new RecallMemoryAction(memory));
+
         logger.info("ActionExecutor initialized with {} plugins", actionPlugins.size());
     }
 
@@ -59,6 +72,7 @@ public class ActionExecutor {
 
         try {
             Map<String, Object> params = buildParams(actionParam, context);
+            params.put("memory", memory);
             ActionResult result = plugin.execute(params);
             logger.debug("Action '{}' executed: {}", actionType, result.success() ? "success" : "failure");
             return result;
@@ -141,6 +155,8 @@ public class ActionExecutor {
         try {
             Map<String, Object> fullParams = new java.util.HashMap<>(params);
             fullParams.put("timestamp", Instant.now());
+            // 注入 memory 到参数中，供需要记忆的操作使用
+            fullParams.put("memory", memory);
             ActionResult result = plugin.execute(fullParams);
             logger.debug("Tool '{}' executed: {}", toolName, result.success() ? "success" : "failure");
             return result;

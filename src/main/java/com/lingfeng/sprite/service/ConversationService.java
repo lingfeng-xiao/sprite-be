@@ -148,15 +148,15 @@ public class ConversationService {
     private String buildAvailableTools() {
         return """
             可用工具：
-            - SearchFiles(query, path): 搜索文件
-            - Calculator(expression): 计算数学表达式
-            - Remember(content, memoryType): 存储重要信息到记忆
-            - RecallMemory(query): 搜索相关记忆
+            - Calculator(expression): 计算数学表达式，如 Calculator(expression="2+3*4")
+            - SearchFiles(query, path): 搜索文件，如 SearchFiles(query="报告", path="/home")
+            - Remember(content, memoryType): 存储重要信息到记忆，如 Remember(content="主人喜欢咖啡")
+            - RecallMemory(query): 搜索相关记忆，如 RecallMemory(query="咖啡")
             - Notify(message, priority): 发送系统通知
             - LogAction(content): 记录日志
 
             如果需要调用工具，请以JSON格式返回：
-            {"tool_calls": [{"tool": "工具名", "params": {"参数": "值"}}]}
+            {"tool_calls": [{"tool": "Calculator", "params": {"expression": "2+3"}}]}
             """;
     }
 
