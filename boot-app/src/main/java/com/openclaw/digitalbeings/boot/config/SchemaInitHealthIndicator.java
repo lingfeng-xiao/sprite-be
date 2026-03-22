@@ -1,10 +1,13 @@
 package com.openclaw.digitalbeings.boot.config;
 
+import org.neo4j.driver.Driver;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnBean(Driver.class)
 public class SchemaInitHealthIndicator implements HealthIndicator {
     private final SchemaInitializer schemaInitializer;
 
@@ -14,8 +17,14 @@ public class SchemaInitHealthIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
-        // SchemaInitHealthIndicator tracks initialization state
-        // This is a placeholder - implement actual state tracking
-        return Health.up().build();
+        if (schemaInitializer.isInitialized()) {
+            return Health.up()
+                    .withDetail("schema", "initialized")
+                    .build();
+        } else {
+            return Health.down()
+                    .withDetail("schema", "not initialized")
+                    .build();
+        }
     }
 }

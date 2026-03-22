@@ -3,9 +3,11 @@ package com.openclaw.digitalbeings.boot.config;
 import org.neo4j.driver.Driver;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnBean(Driver.class)
 public class Neo4jHealthIndicator implements HealthIndicator {
     private final Driver driver;
 

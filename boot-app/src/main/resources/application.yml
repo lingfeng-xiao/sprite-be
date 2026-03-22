@@ -11,9 +11,11 @@ management:
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
 digital-beings:
   program:
-    phase: stage-2
+    phase: stage-7
     status-document: docs/PROGRAM-STATUS.md
   jobs:
     heartbeat-enabled: false

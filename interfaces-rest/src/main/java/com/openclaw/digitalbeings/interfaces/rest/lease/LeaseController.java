@@ -2,6 +2,7 @@ package com.openclaw.digitalbeings.interfaces.rest.lease;
 
 import com.openclaw.digitalbeings.application.being.BeingView;
 import com.openclaw.digitalbeings.application.lease.AcquireAuthorityLeaseCommand;
+import com.openclaw.digitalbeings.application.lease.HandoffLeaseCommand;
 import com.openclaw.digitalbeings.application.lease.LeaseService;
 import com.openclaw.digitalbeings.application.lease.LeaseView;
 import com.openclaw.digitalbeings.application.lease.RegisterRuntimeSessionCommand;
@@ -56,6 +57,24 @@ public class LeaseController {
         LeaseView data = leaseService.releaseAuthorityLease(new ReleaseAuthorityLeaseCommand(
                 request.beingId(),
                 leaseId,
+                request.actor()
+        ));
+        return ResponseEntity.ok(RequestEnvelopes.success(data));
+    }
+
+    /**
+     * Hands off an active authority lease from the current session to a new session.
+     * Used for dual-host coordination where the lease must migrate from one host to another atomically.
+     */
+    @PostMapping("/leases/{leaseId}/handoff")
+    public ResponseEntity<RequestEnvelope<LeaseView>> handoffLease(
+            @PathVariable("leaseId") String currentLeaseId,
+            @RequestBody HandoffLeaseRequest request
+    ) {
+        LeaseView data = leaseService.handoffLease(new HandoffLeaseCommand(
+                request.beingId(),
+                currentLeaseId,
+                request.newSessionId(),
                 request.actor()
         ));
         return ResponseEntity.ok(RequestEnvelopes.success(data));

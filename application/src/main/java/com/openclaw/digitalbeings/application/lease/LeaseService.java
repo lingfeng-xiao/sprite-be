@@ -28,6 +28,19 @@ public final class LeaseService {
         return RuntimeSessionView.from(command.beingId(), runtimeSession);
     }
 
+    /**
+     * Registers a runtime session and automatically acquires an authority lease for it.
+     * This is the primary entry point for OpenClaw host adapters.
+     */
+    public SessionWithLeaseView startBeingSession(StartBeingSessionCommand command) {
+        Objects.requireNonNull(command, "command");
+        Being being = beingStore.requireById(command.beingId());
+        RuntimeSession runtimeSession = being.registerRuntimeSession(command.hostType(), command.actor(), clock.instant());
+        AuthorityLease lease = being.acquireAuthorityLease(runtimeSession.sessionId(), command.actor(), clock.instant());
+        beingStore.save(being);
+        return SessionWithLeaseView.from(command.beingId(), runtimeSession, lease);
+    }
+
     public LeaseView acquireAuthorityLease(AcquireAuthorityLeaseCommand command) {
         Objects.requireNonNull(command, "command");
         Being being = beingStore.requireById(command.beingId());
@@ -56,12 +69,39 @@ public final class LeaseService {
         return LeaseView.from(command.beingId(), lease, session);
     }
 
+    /**
+     * Hands off the active authority lease from one session to another.
+     * Used for dual-host coordination where a new host session takes over the lease atomically.
+     */
+    public LeaseView handoffLease(HandoffLeaseCommand command) {
+        Objects.requireNonNull(command, "command");
+        Being being = beingStore.requireById(command.beingId());
+        AuthorityLease newLease = being.handoffAuthorityLease(
+                command.currentLeaseId(),
+                command.newSessionId(),
+                command.actor(),
+                clock.instant()
+        );
+        beingStore.save(being);
+        RuntimeSession session = being.runtimeSessions().stream()
+                .filter(s -> s.sessionId().equals(newLease.sessionId()))
+                .findFirst()
+                .orElseThrow();
+        return LeaseView.from(command.beingId(), newLease, session);
+    }
+
     public BeingView getBeing(String beingId) {
         return BeingView.from(beingStore.requireById(beingId));
     }
 
     public RuntimeSessionView closeSession(String beingId, String sessionId, String actor) {
         Being being = beingStore.requireById(beingId);
+        // Auto-release any active lease associated with this session before closing the session
+        being.authorityLeases().stream()
+                .filter(lease -> lease.sessionId().equals(sessionId))
+                .filter(AuthorityLease::isActive)
+                .findFirst()
+                .ifPresent(lease -> being.releaseAuthorityLease(lease.leaseId(), actor, clock.instant()));
         being.closeRuntimeSession(sessionId, actor, clock.instant());
         beingStore.save(being);
         RuntimeSession session = being.requireRuntimeSession(sessionId);

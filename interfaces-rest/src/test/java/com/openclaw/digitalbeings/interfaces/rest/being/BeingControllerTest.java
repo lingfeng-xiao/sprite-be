@@ -2,6 +2,13 @@ package com.openclaw.digitalbeings.interfaces.rest.being;
 
 import com.openclaw.digitalbeings.application.being.BeingService;
 import com.openclaw.digitalbeings.application.being.BeingView;
+import com.openclaw.digitalbeings.application.being.InjectionContextService;
+import com.openclaw.digitalbeings.application.being.InjectionContextView;
+import com.openclaw.digitalbeings.application.governance.GovernanceService;
+import com.openclaw.digitalbeings.application.lease.LeaseService;
+import com.openclaw.digitalbeings.application.lease.SessionWithLeaseView;
+import com.openclaw.digitalbeings.application.lease.LeaseView;
+import com.openclaw.digitalbeings.application.lease.RuntimeSessionView;
 import com.openclaw.digitalbeings.interfaces.rest.api.ApiExceptionHandler;
 import java.time.Instant;
 import java.util.List;
@@ -27,11 +34,20 @@ class BeingControllerTest {
     @Mock
     private BeingService beingService;
 
+    @Mock
+    private GovernanceService governanceService;
+
+    @Mock
+    private LeaseService leaseService;
+
+    @Mock
+    private InjectionContextService injectionContextService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new BeingController(beingService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new BeingController(beingService, governanceService, leaseService, injectionContextService))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
     }
@@ -57,6 +73,19 @@ class BeingControllerTest {
                 .andExpect(jsonPath("$.data[0].beingId").value("01HZX0000000000000000000000"));
     }
 
+    @Test
+    void startBeingSessionReturnsSessionWithLease() throws Exception {
+        when(leaseService.startBeingSession(any())).thenReturn(sampleSessionWithLeaseView());
+
+        mockMvc.perform(post("/beings/01HZX0000000000000000000000/sessions")
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"beingId\":\"01HZX0000000000000000000000\",\"hostType\":\"openclaw\",\"actor\":\"codex\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.session.sessionId").value("sess-001"))
+                .andExpect(jsonPath("$.data.lease.leaseId").value("lease-001"));
+    }
+
     private static BeingView sampleBeingView() {
         return new BeingView(
                 "01HZX0000000000000000000000",
@@ -71,5 +100,26 @@ class BeingControllerTest {
                 0,
                 null
         );
+    }
+
+    private static SessionWithLeaseView sampleSessionWithLeaseView() {
+        RuntimeSessionView session = new RuntimeSessionView(
+                "01HZX0000000000000000000000",
+                "sess-001",
+                "openclaw",
+                Instant.parse("2026-03-22T00:00:00Z"),
+                null
+        );
+        LeaseView lease = new LeaseView(
+                "01HZX0000000000000000000000",
+                "lease-001",
+                "sess-001",
+                "ACTIVE",
+                Instant.parse("2026-03-22T00:00:00Z"),
+                Instant.parse("2026-03-22T00:00:00Z"),
+                null,
+                "codex"
+        );
+        return new SessionWithLeaseView("01HZX0000000000000000000000", session, lease);
     }
 }

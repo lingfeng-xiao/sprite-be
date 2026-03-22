@@ -53,4 +53,45 @@ class LeaseServiceTest {
 
         assertEquals("RELEASED", releasedLease.status());
     }
+
+    @Test
+    void startBeingSessionRegistersSessionAndAcquiresLeaseInOneCall() {
+        InMemoryBeingStore store = new InMemoryBeingStore();
+        BeingService beingService = new BeingService(store, CLOCK);
+        LeaseService leaseService = new LeaseService(store, CLOCK);
+        BeingView view = beingService.createBeing(new CreateBeingCommand("guan-guan", "codex"));
+
+        SessionWithLeaseView result = leaseService.startBeingSession(
+                new StartBeingSessionCommand(view.beingId(), "openclaw", "codex")
+        );
+
+        assertEquals(view.beingId(), result.beingId());
+        assertEquals("openclaw", result.session().hostType());
+        assertEquals("ACTIVE", result.lease().status());
+        assertEquals(result.session().sessionId(), result.lease().sessionId());
+    }
+
+    @Test
+    void closeSessionAutoReleasesAssociatedLease() {
+        InMemoryBeingStore store = new InMemoryBeingStore();
+        BeingService beingService = new BeingService(store, CLOCK);
+        LeaseService leaseService = new LeaseService(store, CLOCK);
+        BeingView view = beingService.createBeing(new CreateBeingCommand("guan-guan", "codex"));
+
+        // Use startBeingSession to create session + lease in one call
+        SessionWithLeaseView started = leaseService.startBeingSession(
+                new StartBeingSessionCommand(view.beingId(), "openclaw", "codex")
+        );
+
+        // Close session - should auto-release the lease
+        RuntimeSessionView closed = leaseService.closeSession(view.beingId(), started.session().sessionId(), "codex");
+
+        // Session is closed
+        assertEquals(closed.endedAt(), CLOCK.instant());
+
+        // Lease was auto-released
+        var leases = leaseService.listSessions(view.beingId());
+        // The session is closed
+        assertEquals(1, leases.size());
+    }
 }

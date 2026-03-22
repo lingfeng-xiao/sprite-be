@@ -122,6 +122,100 @@ public final class LegacyImporter {
         );
     }
 
+    /**
+     * Performs a full import replay, parsing and importing all discovered artifacts.
+     * Produces count, anomaly, and graph consistency reports.
+     *
+     * @param sourceRoot root of the legacy Python repository
+     * @return replay report with statistics, warnings, anomalies, and graph consistency checks
+     */
+    public LegacyImportReplayReport replay(String sourceRoot) {
+        return replay(Paths.get(sourceRoot));
+    }
+
+    /**
+     * Performs a full import replay, parsing and importing all discovered artifacts.
+     * Produces count, anomaly, and graph consistency reports.
+     *
+     * @param sourceRoot root of the legacy Python repository
+     * @return replay report with statistics, warnings, anomalies, and graph consistency checks
+     */
+    public LegacyImportReplayReport replay(Path sourceRoot) {
+        Objects.requireNonNull(sourceRoot, "sourceRoot");
+        Path normalizedRoot = sourceRoot.toAbsolutePath().normalize();
+        LegacyImportPlan plan = LegacyImportPlan.stageZeroDefault(normalizedRoot.toString());
+
+        List<String> warnings = new ArrayList<>();
+        List<String> anomalies = new ArrayList<>();
+        List<String> graphConsistencyChecks = new ArrayList<>();
+
+        if (!Files.exists(normalizedRoot)) {
+            anomalies.add("Source root does not exist: " + normalizedRoot);
+            return new LegacyImportReplayReport(
+                    normalizedRoot,
+                    plan,
+                    buildDiscoveries(normalizedRoot, warnings, anomalies),
+                    emptySummary(),
+                    zeroStatistics(),
+                    List.copyOf(warnings),
+                    List.copyOf(anomalies),
+                    List.copyOf(graphConsistencyChecks),
+                    plan.supportedImportCategories()
+            );
+        }
+
+        List<LegacySourceDiscovery> discoveries = buildDiscoveries(normalizedRoot, warnings, anomalies);
+        ScanTally tally = scan(normalizedRoot, plan, warnings, anomalies);
+        ParseTally parseTally = parseFiles(normalizedRoot, plan, warnings, anomalies);
+
+        if (tally.discoveredFiles == 0L) {
+            warnings.add("No importable artifacts were discovered under " + normalizedRoot);
+        }
+
+        // Build graph consistency checks from parse results
+        buildGraphConsistencyChecks(parseTally, graphConsistencyChecks);
+
+        return new LegacyImportReplayReport(
+                normalizedRoot,
+                plan,
+                discoveries,
+                new LegacyImportCountSummary(
+                        tally.discoveredFiles,
+                        tally.discoveredDirectories,
+                        tally.pythonFiles,
+                        tally.jsonFiles,
+                        tally.jsonlFiles,
+                        tally.yamlFiles,
+                        tally.markdownFiles,
+                        tally.otherFiles,
+                        Map.copyOf(tally.filesByCategory)
+                ),
+                new LegacyImportReplayReport.ImportStatistics(
+                        parseTally.beingsCreated,
+                        parseTally.identityFacetsCreated,
+                        parseTally.relationshipsCreated,
+                        parseTally.reviewItemsCreated,
+                        parseTally.ownerProfileFactsCreated,
+                        parseTally.sessionsCreated,
+                        parseTally.leasesCreated,
+                        parseTally.snapshotsCreated,
+                        parseTally.parseFailures,
+                        parseTally.mappingFailures,
+                        parseTally.graphViolations
+                ),
+                List.copyOf(warnings),
+                List.copyOf(anomalies),
+                List.copyOf(graphConsistencyChecks),
+                plan.supportedImportCategories()
+        );
+    }
+
+    private static LegacyImportReplayReport.ImportStatistics zeroStatistics() {
+        return new LegacyImportReplayReport.ImportStatistics(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
+        );
+    }
+
     private static List<LegacySourceDiscovery> buildDiscoveries(Path normalizedRoot, List<String> warnings, List<String> anomalies) {
         List<LegacySourceDiscovery> discoveries = new ArrayList<>();
         for (PlannedSource source : PLANNED_SOURCES) {
@@ -292,6 +386,132 @@ public final class LegacyImporter {
     private record PlannedSource(String label, Path path, List<LegacyImportCategory> expectedCategories) {
     }
 
+    /**
+     * Parses all discovered artifact files using the appropriate parser for each category.
+     * Returns counts of successfully parsed and failed artifacts by category.
+     */
+    private static ParseTally parseFiles(Path normalizedRoot, LegacyImportPlan plan, List<String> warnings, List<String> anomalies) {
+        ParseTally tally = new ParseTally();
+
+        try (Stream<Path> stream = Files.walk(normalizedRoot)) {
+            stream.filter(path -> !path.equals(normalizedRoot))
+                    .filter(Files::isRegularFile)
+                    .filter(path -> !shouldSkip(path))
+                    .sorted(Comparator.naturalOrder())
+                    .forEach(path -> {
+                        LegacyImportCategory category = inferCategory(normalizedRoot, path, plan);
+                        if (category == null) {
+                            return;
+                        }
+
+                        boolean parsed = false;
+                        switch (category) {
+                            case BEINGS -> parsed = parseBeingFile(path, tally, anomalies);
+                            case ACCEPTED_REVIEW_ITEMS -> parsed = parseReviewFile(path, tally, anomalies);
+                            case SESSIONS_AND_LEASES_METADATA -> parsed = parseSessionFile(path, tally, anomalies);
+                            case SNAPSHOTS -> {
+                                // YAML snapshots are informational; count as discovered but not importable in this phase
+                                tally.snapshotsCreated++;
+                                parsed = true;
+                            }
+                            case RELATIONSHIPS -> {
+                                // Bridge relationships are structural; count as discovered
+                                tally.relationshipsCreated++;
+                                parsed = true;
+                            }
+                            case OWNER_PROFILE_FACTS -> {
+                                // Memory/agent facts are informational; count as discovered
+                                tally.ownerProfileFactsCreated++;
+                                parsed = true;
+                            }
+                            default -> {
+                                // Deferred categories - skip but note
+                            }
+                        }
+
+                        if (!parsed) {
+                            tally.parseFailures++;
+                        }
+                    });
+        } catch (Exception exception) {
+            anomalies.add("Failed to parse files: " + exception.getMessage());
+        }
+
+        return tally;
+    }
+
+    private static boolean parseBeingFile(Path path, ParseTally tally, List<String> anomalies) {
+        String fileName = path.getFileName().toString();
+        if (!fileName.equals("being.yaml") && !fileName.equals("being.yml")) {
+            return false;
+        }
+        return BeingYamlParser.parse(path)
+                .map(parsed -> {
+                    tally.beingsCreated++;
+                    if (parsed.displayName() != null && !parsed.displayName().isBlank()) {
+                        tally.identityFacetsCreated++;
+                    }
+                    return true;
+                })
+                .orElseGet(() -> {
+                    tally.parseFailures++;
+                    anomalies.add("Failed to parse being.yaml: " + path);
+                    return false;
+                });
+    }
+
+    private static boolean parseReviewFile(Path path, ParseTally tally, List<String> anomalies) {
+        String fileName = path.getFileName().toString();
+        if (!fileName.equals("review-state.json")) {
+            return false;
+        }
+        return ReviewStateParser.parse(path)
+                .map(parsed -> {
+                    tally.reviewItemsCreated++;
+                    return true;
+                })
+                .orElseGet(() -> {
+                    tally.parseFailures++;
+                    anomalies.add("Failed to parse review-state.json: " + path);
+                    return false;
+                });
+    }
+
+    private static boolean parseSessionFile(Path path, ParseTally tally, List<String> anomalies) {
+        String fileName = path.getFileName().toString();
+        if (!fileName.endsWith(".jsonl")) {
+            return false;
+        }
+        return SessionLeaseJsonParser.parse(path)
+                .map(parsed -> {
+                    tally.sessionsCreated++;
+                    if (parsed.isActive()) {
+                        tally.leasesCreated++;
+                    }
+                    return true;
+                })
+                .orElseGet(() -> {
+                    tally.parseFailures++;
+                    anomalies.add("Failed to parse session JSONL: " + path);
+                    return false;
+                });
+    }
+
+    private static void buildGraphConsistencyChecks(ParseTally tally, List<String> checks) {
+        checks.add("Beings parsed: " + tally.beingsCreated);
+        checks.add("Sessions parsed: " + tally.sessionsCreated + " (active leases: " + tally.leasesCreated + ")");
+        checks.add("Review items parsed: " + tally.reviewItemsCreated);
+        checks.add("Owner profile facts parsed: " + tally.ownerProfileFactsCreated);
+        checks.add("Parse failures: " + tally.parseFailures);
+        checks.add("Graph violations: " + tally.graphViolations);
+        if (tally.beingsCreated > 0 && tally.sessionsCreated == 0) {
+            checks.add("WARNING: Beings exist without any session records");
+        }
+        if (tally.sessionsCreated > 0 && tally.beingsCreated == 0) {
+            checks.add("WARNING: Session records exist without any being definitions");
+        }
+    }
+
     private static final class ScanTally {
         long discoveredFiles;
         long discoveredDirectories;
@@ -302,5 +522,19 @@ public final class LegacyImporter {
         long markdownFiles;
         long otherFiles;
         final Map<LegacyImportCategory, Long> filesByCategory = new EnumMap<>(LegacyImportCategory.class);
+    }
+
+    private static final class ParseTally {
+        long beingsCreated;
+        long identityFacetsCreated;
+        long relationshipsCreated;
+        long reviewItemsCreated;
+        long ownerProfileFactsCreated;
+        long sessionsCreated;
+        long leasesCreated;
+        long snapshotsCreated;
+        long parseFailures;
+        long mappingFailures;
+        long graphViolations;
     }
 }

@@ -8,6 +8,7 @@ import com.openclaw.digitalbeings.application.review.RebuildCanonicalProjectionC
 import com.openclaw.digitalbeings.application.review.ReviewDecision;
 import com.openclaw.digitalbeings.application.review.ReviewItemView;
 import com.openclaw.digitalbeings.application.review.ReviewService;
+import com.openclaw.digitalbeings.application.review.SubmitEvolutionSignalCommand;
 import com.openclaw.digitalbeings.application.review.SubmitReviewCommand;
 import com.openclaw.digitalbeings.interfaces.rest.status.RequestEnvelope;
 import com.openclaw.digitalbeings.interfaces.rest.status.RequestEnvelopes;
@@ -95,5 +96,20 @@ public class ReviewController {
     @GetMapping("/canonical-projections/{beingId}")
     public ResponseEntity<RequestEnvelope<CanonicalProjectionView>> getCanonicalProjection(@PathVariable("beingId") String beingId) {
         return ResponseEntity.ok(RequestEnvelopes.success(reviewService.getCanonicalProjection(beingId)));
+    }
+
+    /**
+     * Converts an OpenClaw evolution signal into a Java review item in the IDENTITY lane.
+     * The review item is automatically submitted, but IDENTITY_CANDIDATE still requires manual review gate.
+     */
+    @PostMapping("/beings/{beingId}/evolution-signal")
+    public ResponseEntity<RequestEnvelope<ReviewItemView>> submitEvolutionSignal(
+            @PathVariable("beingId") String beingId,
+            @RequestBody SubmitEvolutionSignalRequest request
+    ) {
+        ReviewItemView data = reviewService.submitEvolutionSignal(
+                new SubmitEvolutionSignalCommand(beingId, request.proposal(), request.actor())
+        );
+        return ResponseEntity.ok(RequestEnvelopes.success(data));
     }
 }

@@ -24,9 +24,9 @@ public class LeaseExpiryJob {
     public void scanAndExpireLeases() {
         log.debug("Scanning for expired leases...");
         for (Being being : beingStore.findAll()) {
-            being.activeAuthorityLease()
+            being.authorityLeases().stream()
                 .filter(AuthorityLease::isExpired)
-                .ifPresent(lease -> {
+                .forEach(lease -> {
                     try {
                         leaseService.expireLease(being.beingId().value(), lease.leaseId(), "SYSTEM");
                         log.info("Expired lease {} for being {}", lease.leaseId(), being.beingId());

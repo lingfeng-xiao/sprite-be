@@ -75,6 +75,25 @@ public final class ReviewService {
         return ReviewItemView.from(beingId, requireReviewItem(being, reviewItemId));
     }
 
+    /**
+     * Submits an evolution signal as a review item in the IDENTITY lane.
+     * This converts an OpenClaw evolution reflection into a Java-managed review request.
+     */
+    public ReviewItemView submitEvolutionSignal(SubmitEvolutionSignalCommand command) {
+        Objects.requireNonNull(command, "command");
+        Being being = beingStore.requireById(command.beingId());
+        ReviewItem reviewItem = being.draftReview(
+                "IDENTITY",
+                "EVOLUTION_SIGNAL",
+                command.proposal(),
+                command.actor(),
+                clock.instant()
+        );
+        being.submitReview(reviewItem.reviewItemId(), command.actor(), clock.instant());
+        beingStore.save(being);
+        return ReviewItemView.from(command.beingId(), requireReviewItem(being, reviewItem.reviewItemId()));
+    }
+
     private static ReviewItem requireReviewItem(Being being, String reviewItemId) {
         return being.reviewItems().stream()
                 .filter(candidate -> candidate.reviewItemId().equals(reviewItemId))

@@ -3,6 +3,8 @@ package com.openclaw.digitalbeings.boot.config;
 import com.openclaw.digitalbeings.application.support.BeingStore;
 import com.openclaw.digitalbeings.application.support.InMemoryBeingStore;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -11,22 +13,19 @@ import org.springframework.context.annotation.Profile;
 @Profile("memory")
 public class MemoryBeingStoreConfiguration {
 
-    private BeingStore beingStore;
+    private static final Logger log = LoggerFactory.getLogger(MemoryBeingStoreConfiguration.class);
 
     @Bean
-    BeingStore beingStore(InMemoryBeingStore store) {
-        this.beingStore = store;
-        return store;
+    BeingStore beingStore() {
+        return new InMemoryBeingStore();
     }
 
     @PostConstruct
-    public void validateNeo4jProfile() {
-        if (beingStore instanceof InMemoryBeingStore) {
-            throw new IllegalStateException(
-                "InMemoryBeingStore is deprecated for production use. " +
-                "Please activate the 'neo4j' profile to use Neo4j存储. " +
-                "Run with: --spring.profiles.active=neo4j"
-            );
-        }
+    public void validateMemoryProfile() {
+        log.warn("==============================================");
+        log.warn("WARNING: Running with memory profile (dev only)");
+        log.warn("InMemoryBeingStore is not durable for production");
+        log.warn("Please use --spring.profiles.active=neo4j for production");
+        log.warn("==============================================");
     }
 }

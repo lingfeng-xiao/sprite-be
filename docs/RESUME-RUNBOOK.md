@@ -45,6 +45,86 @@ Run the Gradle commands serially, not in parallel, on this Windows machine.
 - if the remote host is being used for Neo4j verification, check `docs/REMOTE-VERIFICATION-NODE.md` first and then use `ops/remote/start_neo4j.py` or `ops/remote/stop_neo4j.py`
 - when validating the real persistence path, prefer the live remote Neo4j node over inventing local container success on this workstation
 
+## Server Restart Procedure
+
+When restarting the Digital Beings Java service on the remote server (`ssh jd`):
+
+```bash
+# 1. Check current status
+curl -s http://localhost:8080/actuator/health
+
+# 2. Stop the application
+ssh jd "systemctl stop digital-beings"
+
+# 3. Restart Neo4j (if needed)
+ssh jd "docker restart neo4j"
+ssh jd "sleep 10 && docker logs neo4j --tail 20"
+
+# 4. Start the application
+ssh jd "systemctl start digital-beings"
+
+# 5. Wait for startup and verify health
+ssh jd "sleep 15 && curl -s http://localhost:8080/actuator/health"
+```
+
+## Neo4j Backup Procedure
+
+To create a backup of the Neo4j database:
+
+```bash
+# 1. Ensure Neo4j is running
+ssh jd "docker ps | grep neo4j"
+
+# 2. Create backup directory with timestamp
+ssh jd "mkdir -p /backups/neo4j-$(date +%Y%m%d-%H%M%S)"
+
+# 3. Run Neo4j backup
+ssh jd "docker exec neo4j neo4j-admin backup --backup-dir=/backups --graph-name=graph.db"
+
+# 4. Verify backup was created
+ssh jd "ls -la /backups/"
+
+# 5. Check backup integrity
+ssh jd "docker exec neo4j neo4j-admin backup --backup-dir=/backups --check"
+```
+
+## Restore from Backup
+
+```bash
+# 1. Stop the application
+ssh jd "systemctl stop digital-beings"
+
+# 2. Stop Neo4j
+ssh jd "docker stop neo4j"
+
+# 3. Restore from backup (replace TIMESTAMP with actual backup directory)
+ssh jd "docker run --rm -v neo4j_data:/data -v /backups/TIMESTAMP:/backup ubuntu cp -r /backup/* /data/"
+
+# 4. Start Neo4j
+ssh jd "docker start neo4j"
+
+# 5. Verify Neo4j is running
+ssh jd "docker ps | grep neo4j"
+
+# 6. Start the application
+ssh jd "systemctl start digital-beings"
+
+# 7. Verify health
+curl -s http://localhost:8080/actuator/health
+```
+
+## Application Log Locations
+
+| Environment | Log Location |
+|------------|--------------|
+| Remote Server | `journalctl -u digital-beings -f` |
+| Remote Server (file) | `/var/log/digital-beings/` |
+| Remote Neo4j | `docker logs neo4j --tail 100 -f` |
+
+## Incident Response
+
+For detailed incident procedures, see `docs/INCIDENT-RUNBOOK.md`.
+
 ## How To Continue Safely
 
 - create or update a requirement before changing implementation scope
