@@ -41,6 +41,7 @@ public class SpriteService {
     private final EvolutionService evolutionService;
     private final ActionExecutor actionExecutor;
     private final UnifiedContextService unifiedContextService;
+    private final AvatarService avatarService;
 
     public SpriteService(
             AppConfig appConfig,
@@ -50,13 +51,15 @@ public class SpriteService {
             EvolutionService evolutionService,
             ActionExecutor actionExecutor,
             MemorySystem.Memory memory,
-            UnifiedContextService unifiedContextService
+            UnifiedContextService unifiedContextService,
+            AvatarService avatarService
     ) {
         this.memoryConsolidationService = memoryConsolidationService;
         this.evolutionService = evolutionService;
         this.actionExecutor = actionExecutor;
         this.memory = memory;
         this.unifiedContextService = unifiedContextService;
+        this.avatarService = avatarService;
 
         // 加载已保存的长期记忆
         this.memory.load();
@@ -73,6 +76,22 @@ public class SpriteService {
 
         // 创建自我模型
         SelfModel.Self selfModel = SelfModel.Self.createDefault();
+
+        // 注册当前设备分身
+        avatarService.registerCurrentDevice();
+
+        // 将分身列表注入到自我模型
+        SelfModel.Avatars avatars = new SelfModel.Avatars(avatarService.getAllAvatars());
+        selfModel = new SelfModel.Self(
+            selfModel.identity(),
+            selfModel.personality(),
+            selfModel.capabilities(),
+            avatars,
+            selfModel.metacognition(),
+            selfModel.growthHistory(),
+            selfModel.evolutionLevel(),
+            selfModel.evolutionCount()
+        );
 
         // 创建世界模型（使用配置的owner信息）
         OwnerModel.Owner configuredOwner = new OwnerModel.Owner(
@@ -137,6 +156,9 @@ public class SpriteService {
      */
     public CognitionController.CognitionResult cognitionCycle() {
         logger.debug("Starting cognition cycle");
+
+        // 更新当前设备的心跳
+        avatarService.updateLastSeen(avatarService.getCurrentDeviceId());
 
         // 执行认知闭环
         CognitionController.CognitionResult result = sprite.cognitionCycle();
