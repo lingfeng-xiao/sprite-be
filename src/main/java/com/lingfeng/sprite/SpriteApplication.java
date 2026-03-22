@@ -3,6 +3,7 @@ package com.lingfeng.sprite;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 @SpringBootApplication
 @EnableWebSocket
+@EnableScheduling
 public class SpriteApplication {
 
     public static void main(String[] args) {

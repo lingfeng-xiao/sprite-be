@@ -18,6 +18,10 @@ sprite:
   cognition:
     enabled: true
     interval-ms: 1000
+  evolution:
+    enabled: true
+    interval-ms: 600000
+    min-feedback-for-evolution: 3
   llm:
     enabled: false
     minmax:

@@ -13,6 +13,7 @@ public class AppConfig {
     private Cognition cognition = new Cognition();
     private Llm llm = new Llm();
     private Owner owner = new Owner();
+    private Evolution evolution = new Evolution();
 
     public Cognition getCognition() {
         return cognition;
@@ -36,6 +37,14 @@ public class AppConfig {
 
     public void setOwner(Owner owner) {
         this.owner = owner;
+    }
+
+    public Evolution getEvolution() {
+        return evolution;
+    }
+
+    public void setEvolution(Evolution evolution) {
+        this.evolution = evolution;
     }
 
     public static class Cognition {
@@ -140,6 +149,39 @@ public class AppConfig {
 
         public void setHome(String home) {
             this.home = home;
+        }
+    }
+
+    /**
+     * 进化配置
+     */
+    public static class Evolution {
+        private boolean enabled = true;
+        private long intervalMs = 600000; // 10分钟
+        private int minFeedbackForEvolution = 3;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public long getIntervalMs() {
+            return intervalMs;
+        }
+
+        public void setIntervalMs(long intervalMs) {
+            this.intervalMs = intervalMs;
+        }
+
+        public int getMinFeedbackForEvolution() {
+            return minFeedbackForEvolution;
+        }
+
+        public void setMinFeedbackForEvolution(int minFeedbackForEvolution) {
+            this.minFeedbackForEvolution = minFeedbackForEvolution;
         }
     }
 }
