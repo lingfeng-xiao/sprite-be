@@ -6,7 +6,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.openclaw.digitalbeings.application.being.BeingService;
+import com.openclaw.digitalbeings.application.being.InjectionContextService;
 import com.openclaw.digitalbeings.application.governance.GovernanceService;
+import com.openclaw.digitalbeings.application.lease.LeaseService;
+import com.openclaw.digitalbeings.application.snapshot.PortableSnapshotService;
 import com.openclaw.digitalbeings.application.snapshot.SnapshotService;
 import com.openclaw.digitalbeings.interfaces.rest.being.BeingController;
 import com.openclaw.digitalbeings.interfaces.rest.governance.GovernanceController;
@@ -28,13 +31,22 @@ class ApiExceptionHandlerTest {
     private GovernanceService governanceService;
 
     @Mock
+    private LeaseService leaseService;
+
+    @Mock
+    private InjectionContextService injectionContextService;
+
+    @Mock
     private SnapshotService snapshotService;
+
+    @Mock
+    private PortableSnapshotService portableSnapshotService;
 
     @Test
     void mapsBeingValidationErrorsToIdentityFamily() throws Exception {
         when(beingService.getBeing("missing")).thenThrow(new IllegalArgumentException("Unknown being."));
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new BeingController(beingService))
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new BeingController(beingService, governanceService, leaseService, injectionContextService))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
 
@@ -66,7 +78,7 @@ class ApiExceptionHandlerTest {
     void mapsSnapshotValidationErrorsToSnapshotFamily() throws Exception {
         when(snapshotService.listSnapshots("broken")).thenThrow(new IllegalArgumentException("Snapshot type is invalid."));
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new SnapshotController(snapshotService))
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new SnapshotController(snapshotService, portableSnapshotService))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
 

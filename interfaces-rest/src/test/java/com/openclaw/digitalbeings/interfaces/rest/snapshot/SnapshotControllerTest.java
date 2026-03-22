@@ -1,5 +1,6 @@
 package com.openclaw.digitalbeings.interfaces.rest.snapshot;
 
+import com.openclaw.digitalbeings.application.snapshot.PortableSnapshotService;
 import com.openclaw.digitalbeings.application.snapshot.SnapshotService;
 import com.openclaw.digitalbeings.application.snapshot.SnapshotView;
 import com.openclaw.digitalbeings.interfaces.rest.api.ApiExceptionHandler;
@@ -27,11 +28,14 @@ class SnapshotControllerTest {
     @Mock
     private SnapshotService snapshotService;
 
+    @Mock
+    private PortableSnapshotService portableSnapshotService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new SnapshotController(snapshotService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new SnapshotController(snapshotService, portableSnapshotService))
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
     }

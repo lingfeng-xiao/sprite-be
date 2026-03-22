@@ -121,4 +121,20 @@ public final class AuthorityLease {
         }
         return value.trim();
     }
+
+    /**
+     * Factory for reconstituting an AuthorityLease with a known leaseId.
+     * Used during portable snapshot import to preserve lease identity.
+     */
+    public static AuthorityLease fromPortableSnapshot(
+            String leaseId,
+            String sessionId,
+            AuthorityLeaseStatus status,
+            Instant requestedAt,
+            Instant grantedAt,
+            Instant releasedAt,
+            String lastActor
+    ) {
+        return new AuthorityLease(leaseId, sessionId, status, requestedAt, grantedAt, releasedAt, lastActor);
+    }
 }

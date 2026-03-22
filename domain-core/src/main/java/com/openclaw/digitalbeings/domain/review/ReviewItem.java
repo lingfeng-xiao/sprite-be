@@ -145,4 +145,21 @@ public final class ReviewItem {
         }
         return value.trim();
     }
+
+    /**
+     * Factory for reconstituting a ReviewItem with a known reviewItemId.
+     * Used during portable snapshot import to preserve review item identity.
+     */
+    public static ReviewItem fromPortableSnapshot(
+            String reviewItemId,
+            String lane,
+            String kind,
+            String proposal,
+            ReviewItemStatus status,
+            Instant createdAt,
+            Instant updatedAt,
+            String lastActor
+    ) {
+        return new ReviewItem(reviewItemId, lane, kind, proposal, status, createdAt, updatedAt, lastActor);
+    }
 }

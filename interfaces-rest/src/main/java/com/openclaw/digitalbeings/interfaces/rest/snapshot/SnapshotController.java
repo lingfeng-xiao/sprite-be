@@ -1,6 +1,10 @@
 package com.openclaw.digitalbeings.interfaces.rest.snapshot;
 
 import com.openclaw.digitalbeings.application.snapshot.CreateSnapshotCommand;
+import com.openclaw.digitalbeings.application.snapshot.ExportSnapshotCommand;
+import com.openclaw.digitalbeings.application.snapshot.ImportSnapshotCommand;
+import com.openclaw.digitalbeings.application.snapshot.PortableSnapshotService;
+import com.openclaw.digitalbeings.application.snapshot.PortableSnapshotView;
 import com.openclaw.digitalbeings.application.snapshot.SnapshotService;
 import com.openclaw.digitalbeings.application.snapshot.SnapshotView;
 import com.openclaw.digitalbeings.domain.core.SnapshotType;
@@ -20,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class SnapshotController {
 
     private final SnapshotService snapshotService;
+    private final PortableSnapshotService portableSnapshotService;
 
-    public SnapshotController(SnapshotService snapshotService) {
+    public SnapshotController(SnapshotService snapshotService, PortableSnapshotService portableSnapshotService) {
         this.snapshotService = snapshotService;
+        this.portableSnapshotService = portableSnapshotService;
     }
 
     @PostMapping
@@ -39,5 +45,24 @@ public class SnapshotController {
     @GetMapping("/{beingId}")
     public ResponseEntity<RequestEnvelope<List<SnapshotView>>> listSnapshots(@PathVariable("beingId") String beingId) {
         return ResponseEntity.ok(RequestEnvelopes.success(snapshotService.listSnapshots(beingId)));
+    }
+
+    @PostMapping("/beings/{beingId}/export")
+    public ResponseEntity<RequestEnvelope<PortableSnapshotView>> exportSnapshot(
+            @PathVariable("beingId") String beingId,
+            @RequestBody ExportSnapshotRequest request
+    ) {
+        var snapshot = portableSnapshotService.exportSnapshot(new ExportSnapshotCommand(beingId, request.actor()));
+        return ResponseEntity.ok(RequestEnvelopes.success(
+                PortableSnapshotView.from(beingId, snapshot, snapshot.exportedAt())));
+    }
+
+    @PostMapping("/beings/{beingId}/import")
+    public ResponseEntity<RequestEnvelope<PortableSnapshotView>> importSnapshot(
+            @PathVariable("beingId") String beingId,
+            @RequestBody ImportSnapshotRequest request
+    ) {
+        var view = portableSnapshotService.importSnapshot(new ImportSnapshotCommand(beingId, request.snapshot(), request.actor()));
+        return ResponseEntity.ok(RequestEnvelopes.success(view));
     }
 }

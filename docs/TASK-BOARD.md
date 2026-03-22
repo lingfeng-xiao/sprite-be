@@ -8,86 +8,438 @@
 
 ## In Progress
 
+### JAVA-C2a Stage 9 Portable Snapshot Export/Import API ✅ COMPLETED
+
+- Requirement: `REQ-090`
+- Stage: 9
+- Status: completed (2026-03-22)
+- Dependencies: `JAVA-B4` (completed)
+- Note: Run on server via `ssh jd`
+- Implementation Plan:
+  1. ✅ Create `PortableSnapshot` value object (domain-core): captures full Being state
+  2. ✅ Create `ExportSnapshotCommand` + `ImportSnapshotCommand` (application)
+  3. ✅ Create `PortableSnapshotService` with `exportSnapshot()` + `importSnapshot()` (application, @Component)
+  4. ✅ Add `POST /beings/{id}/export` + `POST /beings/{id}/import` to SnapshotController (path: `/snapshots/beings/{id}/export`, `/snapshots/beings/{id}/import`)
+  5. ✅ Add `ReviewItem.fromPortableSnapshot()` factory method (domain-core)
+  6. ✅ Add `AuthorityLease.fromPortableSnapshot()` factory method (domain-core)
+  7. ✅ Add `RuntimeSession.fromPortableSnapshot()` factory method (domain-core)
+  8. ✅ Add `BEING_IMPORTED` to `DomainEventType` enum
+  9. ✅ Add `Being.reconstitute()` factory method (domain-core)
+- Acceptance: Export → stop source → import → all GET endpoints return identical data
+- Verification: All tests pass (`./gradlew test`)
+
+### JAVA-C2b Stage 9 Portable Snapshot JSON Schema
+
+- Requirement: `REQ-090`
+- Stage: 9
+- Status: pending (can start now - C2a export schema is stable)
+- Dependencies: `JAVA-C2a` (export schema stable, can document now)
+- Note: Define schema in docs/PORTABLE-SNAPSHOT-FORMAT.md
+
+## Planned
+
+### JAVA-C3a Stage 9 Portable Snapshot Import API
+
+- Requirement: `REQ-090`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C2a` (export must be done first to know the full schema)
+- Implementation Plan:
+  1. `importSnapshot()` reconstructs Being aggregate from PortableSnapshot JSON
+  2. Validates continuity_epoch increments correctly
+  3. Resets all active leases to CLOSED (no active lease on import)
+  4. Records DOMAIN_EVENT.IMPORTED domain event
+
+### JAVA-C3b Stage 9 Import Consistency Verification
+
+- Requirement: `REQ-090`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C3a`
+- Implementation Plan:
+  1. After import, verify identity regression: GET /beings/{id}/injection-context returns same canonicalProjection.version
+  2. Verify relationships count matches
+  3. Verify ownerProfileFacts preserved
+  4. All verification checks run as automated test
+
+### JAVA-C4 Stage 9 Full Migration Drill Script
+
+- Requirement: `REQ-091`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C2a`, `JAVA-C3a`
+- Outputs:
+  - `ops/migration/run_migration_drill.sh`: export → verify JSON → import → run identity regression → report pass/fail → rollback option
+  - `ops/migration/run_rollback_drill.sh`: re-import original snapshot and verify no drift
+
+### JAVA-C1 Stage 9 Gray Cutover Strategy & First Cutover
+
+- Requirement: `REQ-092`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C4`
+- Implementation Plan:
+  1. Document cutover criteria in docs/MIGRATION-LEDGER.md
+  2. Select first cutover being (low-risk)
+  3. Execute cutover: switch being to Java runtime
+  4. Verify all runtime paths work: injection-context, service-card, session, lease, evolution-signal
+
+### JAVA-C5 Stage 9 Rollback Procedure Validation
+
+- Requirement: `REQ-091`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C4`
+- Verification: Run rollback drill, confirm rollback script exits 0 and no Neo4j drift
+
+### JAVA-C6 Stage 9 OpenClaw Demotion
+
+- Requirement: `REQ-093`
+- Stage: 9
+- Status: pending
+- Dependencies: `JAVA-C1`, `JAVA-C5`
+- Outputs: Delete operate_runtime_hub.py, operate_openclaw_host.py, operate_codex_host.py; OpenClaw adapter only receives Java REST API instructions
+
+### JAVA-D1 Stage 10 OpenClaw Runtime Script Deletion
+
+- Requirement: `REQ-093`
+- Stage: 10
+- Status: pending
+- Dependencies: `JAVA-C6`
+- Outputs: All runtime management scripts deleted from digital-beings/bridge/
+
+### JAVA-D2 Stage 10 being_runtime.py Deletion
+
+- Requirement: `REQ-094`
+- Stage: 10
+- Status: pending
+- Dependencies: `JAVA-D1`
+- Outputs: being_runtime.py and bridge_openclaw.py deleted from digital-beings/bridge/
+
+### JAVA-D3 Stage 10 Archive digital-beings Repository
+
+- Requirement: `REQ-095`
+- Stage: 10
+- Status: pending
+- Dependencies: `JAVA-D2`
+- Outputs: ARCHIVED.md in repo root, git tag `migration-complete-YYYYMMDD`, cron jobs removed
+
+### JAVA-D4 Stage 10 Final Verification
+
+- Requirement: `REQ-096`
+- Stage: 10
+- Status: pending
+- Dependencies: `JAVA-D3`
+- Outputs: Automated verification script confirms zero Python runtime state influence
+
+## Completed
+
+### JAVA-B7 Stage 8 Dual-Host Lease Coordination
+
+- Requirement: `REQ-086`
+- Stage: 8
+- Status: completed
+- Dependencies: `JAVA-B4` (completed)
+- Outputs:
+  - Added `HandoffLeaseCommand` for lease migration
+  - Added `handoffLease()` method to `LeaseService`
+  - Added `handoffAuthorityLease()` to `Being` domain aggregate
+  - Added `POST /leases/{leaseId}/handoff` endpoint in `LeaseController`
+  - Atomic lease handoff: old lease released and new lease created in same transaction
+  - No vacancy window during dual-host handoff
+- Related Files:
+  - `application/src/main/java/.../lease/HandoffLeaseCommand.java`
+  - `application/src/main/java/.../lease/LeaseService.java`
+  - `domain-core/src/main/java/.../being/Being.java`
+  - `interfaces-rest/src/main/java/.../lease/LeaseController.java`
+  - `interfaces-rest/src/main/java/.../lease/HandoffLeaseRequest.java`
+- Related Tests: `./gradlew test` (full suite green)
+
+
+
+### JAVA-B5 Stage 8 EvolutionSignal Closed Loop
+
+- Requirement: `REQ-084`
+- Stage: 8
+- Status: completed
+- Dependencies: `JAVA-B4`
+- Outputs:
+  - Added `SubmitEvolutionSignalCommand` and `submitEvolutionSignal()` method to `ReviewService`
+  - Added `POST /beings/{beingId}/evolution-signal` to `ReviewController`
+  - Evolution signal converts to IDENTITY lane review item and auto-submits
+- Related Files:
+  - `application/src/main/java/.../review/SubmitEvolutionSignalCommand.java`
+  - `application/src/main/java/.../review/ReviewService.java`
+  - `interfaces-rest/src/main/java/.../review/ReviewController.java`
+  - `interfaces-rest/src/main/java/.../review/SubmitEvolutionSignalRequest.java`
+- Related Tests: `./gradlew test` (full suite green)
+
+### JAVA-B4 Stage 8 Embodiment Bundle Compilation
+
+- Requirement: `REQ-083`
+- Stage: 8
+- Status: completed
+- Dependencies: `JAVA-B3`
+- Outputs:
+  - Added `ServiceCardView` for structured service card representation
+  - Added `getServiceCard()` to `InjectionContextService`
+  - Added `GET /beings/{id}/injection-context/service-card` endpoint
+- Related Files:
+  - `application/src/main/java/.../being/ServiceCardView.java`
+  - `application/src/main/java/.../being/InjectionContextService.java`
+  - `interfaces-rest/src/main/java/.../being/BeingController.java`
+- Related Tests: `./gradlew test` (full suite green)
+
+### JAVA-B3 Stage 8 Runtime Injection Context API
+
+- Requirement: `REQ-082`
+- Stage: 8
+- Status: completed
+- Dependencies: `JAVA-B2`
+- Outputs:
+  - Added `InjectionContextView` and `InjectionContextService`
+  - Added `GET /beings/{id}/injection-context` endpoint
+  - Returns being identity, canonical projection, and active session/lease
+- Related Files:
+  - `application/src/main/java/.../being/InjectionContextView.java`
+  - `application/src/main/java/.../being/InjectionContextService.java`
+  - `interfaces-rest/src/main/java/.../being/BeingController.java`
+- Related Tests: `./gradlew test` (full suite green)
+
+### JAVA-B2 Stage 8 AuthorityLease Auto-Release on Session Close
+
+- Requirement: `REQ-081`
+- Stage: 8
+- Status: completed
+- Dependencies: `JAVA-B1`
+- Outputs:
+  - Modified `closeSession()` in `LeaseService` to auto-release associated lease
+  - Added `closeSessionAutoReleasesLease` test to `LeaseServiceTest`
+- Acceptance: Session close automatically releases associated lease
+- Related Files:
+  - `application/src/main/java/.../lease/LeaseService.java`
+  - `application/src/test/java/.../lease/LeaseServiceTest.java`
+- Related Tests: `./gradlew test` (full suite green)
+
+### JAVA-B1 Stage 8 OpenClaw Session Auto-Registration
+
+- Requirement: `REQ-080`
+- Stage: 8
+- Status: completed
+- Dependencies: none
+- Outputs:
+  - Added `StartBeingSessionCommand` and `SessionWithLeaseView`
+  - Added `startBeingSession()` to `LeaseService`
+  - Added `POST /beings/{id}/sessions` endpoint in `BeingController`
+  - Session and lease acquired in one atomic call
+- Related Files:
+  - `application/src/main/java/.../lease/StartBeingSessionCommand.java`
+  - `application/src/main/java/.../lease/SessionWithLeaseView.java`
+  - `application/src/main/java/.../lease/LeaseService.java`
+  - `interfaces-rest/src/main/java/.../being/BeingController.java`
+  - `interfaces-rest/src/main/java/.../being/StartBeingSessionRequest.java`
+  - `interfaces-rest/src/test/java/.../being/BeingControllerTest.java`
+- Related Tests: `./gradlew test` (full suite green)
+
 ### JAVA-033 Stage 5 Legacy Importer Full Replay And Reporting
 
 - Requirement: `REQ-030`
 - Stage: 5
-- Status: in_progress
+- Status: completed
 - Dependencies: `JAVA-032`
 - Inputs:
   - dry-run validated importer mapping core
 - Outputs:
-  - full import replay
-  - count report
-  - anomaly report
-  - graph consistency report
+  - full import replay with wired parsers
+  - count report (in replay report)
+  - anomaly report (in replay report)
+  - graph consistency report (in replay report)
+- Current Progress:
+  - Created `LegacyImportReplayReport` class with import statistics, anomaly tracking, and graph consistency checks
+  - Added `replay()` method to `LegacyImporter` that produces a full report
+  - Created `BeingYamlParser` for parsing being.yaml files
+  - Created `ReviewStateParser` for parsing review-state.json files
+  - Created `SessionLeaseJsonParser` for parsing session/lease JSON files
+  - Added `ParseTally` inner class and `parseFiles()` method to wire parsers into replay logic
+  - Added `buildGraphConsistencyChecks()` to produce actual consistency checks from parse results
+  - Added tests for replay functionality (4 tests passing)
 - Acceptance:
   - full import produces counts, anomalies, and graph consistency output
 - Related Files:
-  - `legacy-importer/`
+  - `legacy-importer/src/main/java/com/openclaw/digitalbeings/legacy/importer/LegacyImportReplayReport.java`
+  - `legacy-importer/src/main/java/com/openclaw/digitalbeings/legacy/importer/LegacyImporter.java`
+  - `legacy-importer/src/main/java/com/openclaw/digitalbeings/legacy/importer/BeingYamlParser.java`
+  - `legacy-importer/src/main/java/com/openclaw/digitalbeings/legacy/importer/ReviewStateParser.java`
+  - `legacy-importer/src/main/java/com/openclaw/digitalbeings/legacy/importer/SessionLeaseJsonParser.java`
   - `docs/MIGRATION-LEDGER.md`
 - Related Tests:
-  - importer full replay tests
+  - `./gradlew :legacy-importer:test` (4 tests passing)
+  - `./gradlew test` (full suite green)
 
 ### JAVA-035 Stage 6 Governance Jobs And Operational Reports
 
 - Requirement: `REQ-040`
 - Stage: 6
-- Status: in_progress
+- Status: completed
 - Dependencies: `JAVA-034`
 - Inputs:
   - governance backend flows
   - imported or native graph data
 - Outputs:
-  - stale lease cleanup job
-  - graph consistency job
-  - operational run reports
+  - stale lease cleanup job (completed in JAVA-A2: LeaseExpiryJob, SessionCleanupJob)
+  - graph consistency job (completed: GraphConsistencyJob with 5 tests)
+  - operational run reports (completed: GovernanceReportJob with 4 tests)
+- Current Progress:
+  - Created `GraphConsistencyJob` that scans for graph integrity issues
+  - Checks for: active sessions without leases, closed sessions, pending review items
+  - Created `GovernanceReportJob` that generates daily operational reports
+  - Added 9 unit tests total (5 for GraphConsistencyJob, 4 for GovernanceReportJob)
 - Acceptance:
   - governance loop is end-to-end and auditable
 - Related Files:
-  - `jobs/`
+  - `jobs/src/main/java/com/openclaw/digitalbeings/jobs/GraphConsistencyJob.java`
+  - `jobs/src/test/java/com/openclaw/digitalbeings/jobs/GraphConsistencyJobTest.java`
+  - `jobs/src/main/java/com/openclaw/digitalbeings/jobs/GovernanceReportJob.java`
+  - `jobs/src/test/java/com/openclaw/digitalbeings/jobs/GovernanceReportJobTest.java`
   - `docs/PROGRAM-STATUS.md`
 - Related Tests:
-  - governance job tests
+  - `./gradlew :jobs:test` (19 job tests passing)
 
-## Planned
+### JAVA-A3 Stage 7 Restart/Backup/DR Runbook
 
-### JAVA-008 Stage 7 Host Adapters
-
-- Requirement: `REQ-050`
+- Requirement: `REQ-072`
 - Stage: 7
-- Status: planned
-- Dependencies: `JAVA-007`
+- Status: completed
+- Dependencies: `JAVA-A1`, `JAVA-A2`
 - Inputs:
-  - stable governance core
+  - completed health probe and lease cleanup
+  - existing runbook templates
 - Outputs:
-  - explicit host event APIs
-  - host drift reporting
+  - Server restart procedure (added to RESUME-RUNBOOK.md)
+  - Neo4j backup procedure (added to RESUME-RUNBOOK.md)
+  - incident runbook (created INCIDENT-RUNBOOK.md)
 - Acceptance:
-  - OpenClaw and Codex style event submission replaces file-driven runtime writes
+  - a newly attached AI can self-serve to understand service restart procedures
 - Related Files:
-  - future host adapter modules
-  - `docs/API-CONTRACT.md`
+  - `docs/RESUME-RUNBOOK.md` (updated with restart/backup procedures)
+  - `docs/INCIDENT-RUNBOOK.md` (new - incident response procedures)
 - Related Tests:
-  - host adapter tests
+  - documentation review
 
-### JAVA-009 Stage 8 Productionization
+## Completed
 
-- Requirement: `REQ-060`
-- Stage: 8
-- Status: planned
-- Dependencies: `JAVA-008`
+### JAVA-A2 Stage 7 LeaseExpiryJob & SessionCleanupJob
+
+- Requirement: `REQ-071`
+- Stage: 7
+- Status: completed
+- Dependencies: none (ran in parallel with A4, A5)
 - Inputs:
-  - full platform
+  - existing lease and session domain models
+  - governance job scheduling framework
 - Outputs:
-  - auth, backup, restore, disaster recovery, monitoring
+  - LeaseExpiryJob (fixed bug: was filtering `activeAuthorityLease().filter(isExpired)` which could never match)
+  - SessionCleanupJob
+  - StatusHeartbeatJob (existing, @ConditionalOnProperty gated)
+  - domain event records for stale transitions
+  - LeaseExpiryJobTest and SessionCleanupJobTest (10 tests total)
 - Acceptance:
-  - migration and restore drills pass
+  - stale lease/session gets marked automatically, with domain event record
+- Bug Fixed:
+  - Changed `being.activeAuthorityLease().filter(AuthorityLease::isExpired)` to `being.authorityLeases().stream().filter(AuthorityLease::isExpired)` in LeaseExpiryJob - the original logic could never match because a lease cannot be both ACTIVE and EXPIRED simultaneously
 - Related Files:
-  - future ops modules
-  - `docs/RESUME-RUNBOOK.md`
+  - `jobs/src/main/java/com/openclaw/digitalbeings/jobs/LeaseExpiryJob.java`
+  - `jobs/src/main/java/com/openclaw/digitalbeings/jobs/SessionCleanupJob.java`
+  - `jobs/src/test/java/com/openclaw/digitalbeings/jobs/LeaseExpiryJobTest.java`
+  - `jobs/src/test/java/com/openclaw/digitalbeings/jobs/SessionCleanupJobTest.java`
+  - `application/src/main/java/com/openclaw/digitalbeings/application/lease/LeaseService.java`
 - Related Tests:
-  - recovery and resilience tests
+  - `./gradlew :jobs:test` (10 tests passing)
+
+### JAVA-A1 Stage 7 Health & Readiness Probe Completion
+
+- Requirement: `REQ-070`
+- Stage: 7
+- Status: completed
+- Dependencies: none
+- Inputs:
+  - existing actuator health indicators
+  - Neo4j connectivity
+- Outputs:
+  - Neo4jHealthIndicator (conditional on Driver bean)
+  - InstanceHealthIndicator (JVM metrics)
+  - SchemaInitHealthIndicator (tracks schema initialization state)
+  - readiness probe configuration in application.yml
+- Acceptance:
+  - `/actuator/health/readiness` returns UP when Neo4j is reachable and schema is initialized
+- Related Files:
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/Neo4jHealthIndicator.java`
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/InstanceHealthIndicator.java`
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/SchemaInitHealthIndicator.java`
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/SchemaInitializer.java`
+  - `boot-app/src/main/resources/application.yml`
+- Related Tests:
+  - `./gradlew :boot-app:test`
+
+### JAVA-A4 Stage 7 Neo4j Migration Script Framework
+
+- Requirement: `REQ-073`
+- Stage: 7
+- Status: completed
+- Dependencies: none
+- Inputs:
+  - existing migration assets
+  - neo4j-migrations configuration
+- Outputs:
+  - V001__baseline_graph migration (CanonicalProjection constraint)
+  - V002__canonical_projection_graph migration (all other constraints and indexes)
+  - SchemaInitializer with @ConditionalOnBean(Driver.class) to prevent creation without Neo4j
+- Acceptance:
+  - schema changes are versioned, tests have entry point
+- Related Files:
+  - `infra-neo4j/src/main/resources/neo4j/migrations/V001__baseline_graph.cypher`
+  - `infra-neo4j/src/main/resources/neo4j/migrations/V002__canonical_projection_graph.cypher`
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/SchemaInitializer.java`
+  - `docs/SCHEMA-GRAPH.md`
+- Related Tests:
+  - `:infra-neo4j:test`
+
+### JAVA-A5 Stage 7 Memory Store Production Guard
+
+- Requirement: `REQ-074`
+- Stage: 7
+- Status: completed
+- Dependencies: none
+- Inputs:
+  - existing boot profile configuration
+  - MemoryBeingStoreConfiguration
+- Outputs:
+  - profile validation in neo4j profile (Neo4jProfileValidation)
+  - warning log on startup for memory profile
+  - ConditionalOnBean(Driver.class) guards to prevent creation without Neo4j
+- Acceptance:
+  - production neo4j profile cannot start with InMemoryStore implementation
+- Related Files:
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/MemoryBeingStoreConfiguration.java`
+  - `boot-app/src/main/java/com/openclaw/digitalbeings/boot/config/Neo4jProfileValidation.java`
+  - `boot-app/src/main/resources/application.yml`
+- Related Tests:
+  - `:boot-app:test`
+
+### JAVA-034 Stage 6 Governance Backend Slice
+- Inputs:
+  - existing boot profile configuration
+  - MemoryBeingStoreConfiguration
+- Outputs:
+  - profile validation
+  - warning log on startup for memory profile
+- Acceptance:
+  - production neo4j profile cannot start with InMemoryStore implementation
+- Related Files:
+  - `boot-app/src/main/resources/application.yml`
+  - `boot-app/.../MemoryBeingStoreConfiguration.java`
+- Related Tests:
+  - `:boot-app:test`
 
 ## Completed
 

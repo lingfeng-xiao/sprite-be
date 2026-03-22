@@ -68,4 +68,12 @@ public final class RuntimeSession {
         }
         return value.trim();
     }
+
+    /**
+     * Factory for reconstituting a RuntimeSession with a known sessionId.
+     * Used during portable snapshot import to preserve session identity.
+     */
+    public static RuntimeSession fromPortableSnapshot(String sessionId, String hostType, Instant startedAt, Instant endedAt) {
+        return new RuntimeSession(sessionId, hostType, startedAt, endedAt);
+    }
 }

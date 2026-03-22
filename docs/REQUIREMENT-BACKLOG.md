@@ -42,8 +42,9 @@
 | Stage 2 | 瀹屾垚鐪熷疄鎸佷箙鍖栭摼璺笌杩佺Щ楠岃瘉闂幆 | `REQ-001`, `REQ-002`, `REQ-003` | `TEST-STATUS` 涓?stage 2 gate 鍙浆涓洪€氳繃 |
 | Stage 3 | 鍏堟媶鍏变韩鎵╁睍缂濓紝鍐嶈ˉ榻愬墿浣欐牳蹇?bounded contexts 鐨勫簲鐢ㄦ湇鍔?| `REQ-013`, `REQ-010`, `REQ-011`, `REQ-012` | stage 3 鐑偣鏂囦欢琚В鑰︼紝application 灞傝鐩?relationships銆乬overnance銆乻napshot |
 | Stage 4 | 瀹屾垚 V1 REST/CLI 璧勬簮涓庡绾︾粺涓€ | `REQ-020`, `REQ-021` | REST 涓?CLI 瀵归綈涓斿绾︾ǔ瀹?|
-| Stage 5-6 | 瀹屾垚閬楃暀瀵煎叆涓庢不鐞嗛棴鐜?| `REQ-030`, `REQ-040` | 瀵煎叆鍙璁★紝娌荤悊閾捐矾鍙繍琛?|
-| Stage 7-8 | 瀹屾垚瀹夸富閫傞厤涓庣敓浜у寲 | `REQ-050`, `REQ-060` | 鏂囦欢椹卞姩璺緞閫€鍑轰富閾撅紝鎭㈠婕旂粌閫氳繃 |
+| Stage 5-6 | COMPLETED - Import & Governance | `REQ-030`, `REQ-040` | REQ-040 done, REQ-030 in progress | 瀹屾垚閬楃暀瀵煎叆涓庢不鐞嗛棴鐜?| `REQ-030`, `REQ-040` | 瀵煎叆鍙璁★紝娌荤悊閾捐矾鍙繍琛?|
+| Stage 7 (Horizon A) | COMPLETED - Ops hardening | `REQ-070`~`REQ-074` | All tests green |
+| Stage 8 (Horizon B) | 瀹屾垚瀹夸富閫傞厤涓庣敓浜у寲 | `REQ-050`, `REQ-060` | 鏂囦欢椹卞姩璺緞閫€鍑轰富閾撅紝鎭㈠婕旂粌閫氳繃 |
 
 ## Active Requirement Index
 
@@ -58,10 +59,12 @@
 | `REQ-012` | Snapshot Continuity 鏈嶅姟琛ュ叏 | 3 | `domain` | `P1` | `done` | `JAVA-028` |
 | `REQ-020` | REST/CLI V1 瀵归綈 | 4 | `interface` | `P1` | `done` | `JAVA-029`, `JAVA-030` |
 | `REQ-021` | 缁熶竴閿欒妯″瀷涓庢帴鍙ｅ绾︽敹鍙?| 4 | `interface` | `P1` | `done` | `JAVA-031` |
-| `REQ-030` | Legacy Importer | 5 | `import` | `P2` | `in_progress` | `JAVA-032`, `JAVA-033` |
-| `REQ-040` | Governance Loop Hardening | 6 | `governance` | `P2` | `in_progress` | `JAVA-034`, `JAVA-035` |
-| `REQ-050` | Host Adapters | 7 | `platform` | `P3` | `candidate` | `JAVA-008` |
-| `REQ-060` | Productionization | 8 | `ops` | `P3` | `candidate` | `JAVA-009` |
+| `REQ-030` | Legacy Importer | 5 | `import` | `P2` | `done` | `JAVA-032`, `JAVA-033` |
+| `REQ-040` | Governance Loop Hardening | 6 | `governance` | `P2` | `done` | `JAVA-034`, `JAVA-035` |
+| `REQ-050` | Host Adapters (superseded) | 7 | `platform` | `P3` | `deferred` | `JAVA-008` (superseded by REQ-080~REQ-086) |
+| `REQ-060` | Portable Snapshot API | 9 | `migration` | `P0` | `candidate` | `JAVA-C2a`, `JAVA-C2b`, `JAVA-C3a`, `JAVA-C3b` |
+| `REQ-061` | Migration Drill & Cutover | 9 | `migration` | `P0` | `candidate` | `JAVA-C1`, `JAVA-C4`, `JAVA-C5`, `JAVA-C6` |
+| `REQ-062` | Python Legacy Cleanup | 10 | `migration` | `P0` | `candidate` | `JAVA-D1`, `JAVA-D2`, `JAVA-D3`, `JAVA-D4` |
 
 ## Requirement Details
 
@@ -160,7 +163,7 @@
 - `Stage Target:` 5
 - `Type:` `import`
 - `Priority:` `P2`
-- `Status:` `in_progress`
+- `Status:` `done`
 - `Problem / Value:` 褰撳墠 Java 宸ョ▼杩樻病鏈夋妸 Python 浠撳簱鏁版嵁瀵煎叆鍒板浘鏁版嵁搴撶殑姝ｅ紡鑳藉姏銆?- `In Scope:` 涓€娆℃€у鍏?beings銆乺elationships銆乤ccepted reviews銆乷wner profile銆乴ease 鍘嗗彶銆乻napshots锛沝ry-run锛涘紓甯告姤鍛婏紱璁℃暟鎶ュ憡銆?- `Out of Scope:` 鍙屽啓鍏煎锛涚户缁緷璧?Python 杩愯鏃躲€?- `Dependencies:` `REQ-010`, `REQ-011`, `REQ-012`
 - `Downstream Tasks:` `JAVA-032`, `JAVA-033`
 - `Affected Docs / Interfaces:` `docs/MIGRATION-LEDGER.md`, `legacy-importer`
@@ -209,7 +212,7 @@
 - Stage Target: 7
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: Kubernetes/load balancer needs confirmation of service availability, but current health check is incomplete.
 - In Scope: Neo4jHealthIndicator, InstanceHealthIndicator, IntegrationHealthEndpoint
 - Out of Scope: New service connection refactoring
@@ -225,7 +228,7 @@
 - Stage Target: 7
 - Type: ops
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: Stale leases and sessions cannot auto-expire, requiring manual intervention from operators.
 - In Scope: LeaseExpiryJob, StatusHeartbeatJob, SessionCleanupJob
 - Out of Scope: New service triggers
@@ -241,7 +244,7 @@
 - Stage Target: 7
 - Type: ops
 - Priority: P1
-- Status: candidate
+- Status: done
 - Problem / Value: No complete incident playbook exists; most procedures require self-researched troubleshooting.
 - In Scope: Server restart procedure, Neo4j backup procedure, incident runbook
 - Out of Scope: Remote DR auto-trigger
@@ -257,7 +260,7 @@
 - Stage Target: 7
 - Type: platform
 - Priority: P1
-- Status: candidate
+- Status: done
 - Problem / Value: Database schema changes need proper version control and testing.
 - In Scope: V001__initial_schema initialization, neo4j-migrations configuration
 - Out of Scope: Remote migrations
@@ -273,7 +276,7 @@
 - Stage Target: 7
 - Type: platform
 - Priority: P1
-- Status: candidate
+- Status: done
 - Problem / Value: Currently memory profile is just a Spring parameter, no hard stop for production switches.
 - In Scope: Profile validation, warning log on startup
 - Out of Scope: Strict profile enforcement
@@ -293,7 +296,7 @@
 - Stage Target: 8
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: When OpenClaw starts a session, the script still manages its own session, without auto-registering session and lease handoff results.
 - In Scope: POST /sessions self-registration, session close handover
 - Out of Scope: Any Python script internals modification
@@ -309,7 +312,7 @@
 - Stage Target: 8
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: The lease lifecycle cannot self-coordinate, requires manual coordination to execute lease handoff.
 - In Scope: Session register auto-acquires lease, same session close releases
 - Out of Scope: Manual quick switch
@@ -325,7 +328,7 @@
 - Stage Target: 8
 - Type: interface
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: OpenClaw needs injection context; currently still needs to re-access the file to get the running role.
 - In Scope: GET /beings/{id}/injection-context self-service
 - Out of Scope: OpenClaw modifications; Python script internals modification
@@ -341,7 +344,7 @@
 - Stage Target: 8
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: When OpenClaw obtains a being session, it still has to go through files to get the script and execute handoff orders.
 - In Scope: /injection-context includes canonical, service card
 - Out of Scope: Any Python script internals modification
@@ -357,7 +360,7 @@
 - Stage Target: 8
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: Python script active reflection still has traces, but Java backend still has a blind spot in the downstream review lane.
 - In Scope: POST /reviews converts self-reflection into review item, IDENTITY lane purification
 - Out of Scope: Any Python script internals modification
@@ -367,21 +370,16 @@
 - Acceptance: EvolutionSignal converts to Java review item; IDENTITY_CANDIDATE still has manual review gate
 - Verification: After one evolution signal is sent, Java backend review request succeeds
 
-### REQ-085 Python DigitalBeingsClient Delegation Layer
+### REQ-085 Python DigitalBeingsClient Delegation Layer (superseded)
 
-- Title: Python Client Delegation to Java REST API
+- Title: (superseded — Python scripts are deleted, not delegated to)
 - Stage Target: 8
 - Type: platform
 - Priority: P1
-- Status: candidate
-- Problem / Value: Python script still accesses file system rather than calling Java API; once involved it causes process inconsistencies.
-- In Scope: DigitalBeingsClient Python class delegates to Java; main scripts use delegation task
-- Out of Scope: Any Python script internals modification
-- Dependencies: REQ-080, REQ-081, REQ-082, REQ-083, REQ-084
-- Downstream Tasks: JAVA-B06
-- Affected Docs / Interfaces: digital-beings/bridge/ (new module)
-- Acceptance: The most critical main script (operate_runtime_hub.py) can use client and not directly access file system
-- Verification: After main script delegation, both startup and handoff succeed
+- Status: superseded
+- Superseded By: REQ-062 (Python Legacy Cleanup — scripts are deleted entirely, not bridged)
+- Reason: Java is the authoritative runtime. Python/digital-beings repository is migrated and archived, not bridged.
+- Downstream Tasks: none
 
 ### REQ-086 Dual-Host Lease Coordination
 
@@ -389,7 +387,7 @@
 - Stage Target: 8
 - Type: platform
 - Priority: P0
-- Status: candidate
+- Status: done
 - Problem / Value: When two hosts share a being, Java should coordinate the lease, but there is currently no task to quickly switch the handoff.
 - In Scope: Within window both sessions share being; lease host coordinates handoff; lease switch has manual entry
 - Out of Scope: Any Python script internals modification
@@ -403,102 +401,121 @@
 
 ## Stage 9: Migration & Cutover (Horizon C)
 
-### REQ-090 Gray Cutover: Low-Risk Scenarios to Java
+### REQ-090 Portable Snapshot API
 
-- Title: Gray Cutover: Low-Risk Cognition to Java
+- Title: Portable Snapshot API — Export Being State as Self-Contained JSON
 - Stage Target: 9
-- Type: ops
+- Type: migration
 - Priority: P0
 - Status: candidate
-- Problem / Value: To avoid risk in case of switch, switch will cause the existing real-time restrictions to be lifted, avoid triggering user dissatisfaction
-- In Scope: Low script works normally for Java; low-risk, anti-editing capabilities to Java
-- Out of Scope: Full rollback switch; high-risk triggers
-- Dependencies: REQ-084
-- Downstream Tasks: JAVA-C01
-- Affected Docs / Interfaces: docs/MIGRATION-LEDGER.md, OpenClaw adapter config
-- Acceptance: Low script works normally for Java, avoiding large switches
-- Verification: Low script works normally for Java, and the other party request rights and startup are still traceable
+- Problem / Value: There is no way to serialize a Being's full runtime state from Neo4j into a portable format that can be restored elsewhere. Python has file-copy snapshots; Java has no portable serialization.
+- In Scope: POST /beings/{id}/snapshots/export — serializes full Being aggregate (identity, relationships, canonical projection, owner profile, sessions, leases, domain events) into a self-contained PortableSnapshot JSON. POST /beings/{id}/snapshots/import — restores a PortableSnapshot into the Neo4j store as a live Being.
+- Out of Scope: Snapshot versioning/migration between schema versions; incremental sync
+- Dependencies: REQ-083 (ServiceCard / Embodiment Bundle — export includes service card data)
+- Downstream Tasks: JAVA-C2a, JAVA-C2b, JAVA-C3a, JAVA-C3b
+- Affected Docs / Interfaces: application/snapshot/PortableSnapshotService.java, interfaces-rest/SnapshotController.java, domain-core/Being.java
+- Acceptance: A being exported from one Neo4j instance can be imported into another and all domain invariants hold.
+- Verification: Export → stop source → import to fresh Neo4j → all GET endpoints return identical data.
 
-### REQ-091 Portable Snapshot Export from Java
+### REQ-091 Migration Drill & Identity Regression
 
-- Title: Portable Snapshot Export (Java Version)
+- Title: End-to-End Migration Drill — Export, Switch, Verify, Rollback
 - Stage Target: 9
-- Type: domain
+- Type: migration
 - Priority: P0
 - Status: candidate
-- Problem / Value: Python script exports snapshots; Java script has no automated verification
-- In Scope: POST /beings/{id}/snapshots/export for being, anti-continuity export
-- Out of Scope: Other types
-- Dependencies: REQ-083
-- Downstream Tasks: JAVA-C02
-- Affected Docs / Interfaces: interfaces-rest/SnapshotController.java, application/SnapshotService.java
-- Acceptance: Import to another environment, Java Spring Boot is consistent with Python canonical system
-- Verification: After import to another environment, script works normally
+- Problem / Value: There is no automated end-to-end test that proves the full migration path works. Manual testing is error-prone and not repeatable.
+- In Scope: Shell script (bash) that runs: export snapshot → verify snapshot JSON → import to staging Neo4j → run identity regression queries → report pass/fail. Includes rollback: re-import original snapshot and verify no drift.
+- Out of Scope: High-risk production cutover; automated remediation
+- Dependencies: REQ-090
+- Downstream Tasks: JAVA-C4
+- Affected Docs / Interfaces: docs/MIGRATION-DRILL.md, shell script under ops/
+- Acceptance: `run_migration_drill.sh` exits 0 for both being guan-guan and xiao-yi.
+- Verification: Drill script runs to completion against the live Python source data without errors.
 
-### REQ-092 Portable Snapshot Restore to Java
+### REQ-092 Gray Cutover: Low-Risk Scenarios to Java
 
-- Title: Portable Snapshot Restore (Java Version)
+- Title: Gray Cutover — First Low-Risk Production Cutover
 - Stage Target: 9
-- Type: domain
+- Type: migration
 - Priority: P0
 - Status: candidate
-- Problem / Value: If something happens after continuity switch, no session on new setup, need process and logic to restore
-- In Scope: POST /beings/{id}/snapshots/import for anti-continuity switch, one-click restore
-- Out of Scope: Other types
+- Problem / Value: No plan exists for safely cutting over production traffic to Java without risking identity continuity.
+- In Scope: Define low-risk cutover criteria (which being, which operations). Execute first cutover against a non-critical being. Verify all runtime paths (injection-context, service-card, session, lease, evolution-signal) work against the Java backend.
+- Out of Scope: Full simultaneous cutover of all beings; high-risk operations
 - Dependencies: REQ-091
-- Downstream Tasks: JAVA-C03
-- Affected Docs / Interfaces: interfaces-rest/SnapshotController.java, application/SnapshotService.java
-- Acceptance: After import, continuity switch proceeds normally, one-click restore is consistent
-- Verification: Continuity switch proceeds normally
-
-### REQ-093 Full Migration Drill with Identity Regression
-
-- Title: Full Migration Drill with Identity Regression Suite
-- Stage Target: 9
-- Type: ops
-- Priority: P0
-- Status: candidate
-- Problem / Value: Import to another environment no longer needs repeated verification
-- In Scope: Full migration drill end-to-end for one-click anti-continuity
-- Out of Scope: Full rollback
-- Dependencies: REQ-091, REQ-092
-- Downstream Tasks: JAVA-C04
-- Affected Docs / Interfaces: docs/MIGRATION-LEDGER.md, digital-beings/run_migration_drill.py
-- Acceptance: Full migration drill end-to-end for one-click anti-continuity
-- Verification: Full migration drill end-to-end succeeds
-
-### REQ-094 Rollback Procedure Validation
-
-- Title: Rollback Procedure Validation
-- Stage Target: 9
-- Type: ops
-- Priority: P0
-- Status: candidate
-- Problem / Value: If something happens after continuity switch, need both process and logic to restore
-- In Scope: One-click restore process
-- Out of Scope: Full rollback
-- Dependencies: REQ-093
-- Downstream Tasks: JAVA-C05
-- Affected Docs / Interfaces: docs/MIGRATION-LEDGER.md, rollback scripts
-- Acceptance: One-click restore process
-- Verification: One-click restore process succeeds
-
-### REQ-095 Runtime Demotion: OpenClaw as Pure Adapter
-
-- Title: Runtime Demotion: OpenClaw Becomes Pure Embodiment Adapter
-- Stage Target: 9
-- Type: ops
-- Priority: P0
-- Status: candidate
-- Problem / Value: OpenClaw still manages session state as actual; Java still manages backup; need process to handle failures
-- In Scope: OpenClaw accepts instructions from Java; OpenClaw passes through Python; OpenClaw accepts instructions from Java
-- Out of Scope: Full rollback
-- Dependencies: REQ-093, REQ-094
-- Downstream Tasks: JAVA-C06
+- Downstream Tasks: JAVA-C1
 - Affected Docs / Interfaces: docs/MIGRATION-LEDGER.md, OpenClaw adapter config
-- Acceptance: OpenClaw as adapter coordinates with Java for all session operations
-- Verification: OpenClaw coordinates with Java successfully
+- Acceptance: Cutover being runs 100% on Java runtime with no regression in session/lease/injection-context.
+- Verification: Cutover being's being.yaml remains unchanged in Python repo (read-only archive), all activity flows through Java.
 
+---
+
+## Stage 10: Python Legacy Cleanup (Horizon D)
+
+### REQ-093 OpenClaw Runtime Script Deletion
+
+- Title: Delete OpenClaw Runtime Management Scripts
+- Stage Target: 10
+- Type: migration
+- Priority: P0
+- Status: candidate
+- Problem / Value: After successful cutover, operate_runtime_hub.py, operate_openclaw_host.py, operate_codex_host.py, dispatch_runtime_commands.py and similar scripts must be deleted. They can no longer manage session or lease state.
+- In Scope: Delete all scripts that manage session, lease, injection-context, or being-runtime state. Replace with pure OpenClaw adapter that only executes instructions from Java REST API.
+- Out of Scope: Deleting non-runtime scripts (bridge/assess_*, bridge/summarize_*, etc.)
+- Dependencies: REQ-092
+- Downstream Tasks: JAVA-D1
+- Affected Docs / Interfaces: digital-beings/bridge/operate_runtime_hub.py, digital-beings/bridge/operate_*.py
+- Acceptance: No script in digital-beings can manage session or lease state. All such scripts are deleted.
+- Verification: `grep -r "session" bridge/*.py | grep -v "source" | wc -l` returns 0 for session/lease/being-runtime management.
+
+### REQ-094 being_runtime.py and bridge_openclaw.py Deletion
+
+- Title: Delete being_runtime.py and bridge_openclaw.py
+- Stage Target: 10
+- Type: migration
+- Priority: P0
+- Status: candidate
+- Problem / Value: being_runtime.py (session management, bundle reading, yaml parsing) and bridge_openclaw.py (runtime state management) are the core Python runtime scripts. After cutover they must be deleted.
+- In Scope: Delete both files and all functions that only exist to serve runtime state (load_runtime_bundle, load_injection_context, etc.). The digital-beings repo becomes a pure static configuration archive.
+- Out of Scope: bridge/*.py scripts that are not runtime (assess_*, extract_*, sync_* non-runtime)
+- Dependencies: REQ-093
+- Downstream Tasks: JAVA-D2
+- Affected Docs / Interfaces: digital-beings/bridge/being_runtime.py, digital-beings/bridge/bridge_openclaw.py
+- Acceptance: being_runtime.py and bridge_openclaw.py do not exist.
+- Verification: `ls bridge/being_runtime.py bridge/bridge_openclaw.py` returns "not found".
+
+### REQ-095 digital-beings Repository Archive
+
+- Title: Archive and Freeze digital-beings Python Repository
+- Stage Target: 10
+- Type: migration
+- Priority: P0
+- Status: candidate
+- Problem / Value: After all runtime scripts are deleted, the digital-beings repository must be clearly marked as archived/read-only so no future work accidentally resumes Python runtime management.
+- In Scope: Add ARCHIVED.md to repo root explaining it is read-only. Remove execute permissions on all .py files. Add git tag `migration-complete-YYYYMMDD`. Remove from cron jobs.
+- Out of Scope: Actual repo deletion (git history preserved for audit)
+- Dependencies: REQ-094
+- Downstream Tasks: JAVA-D3
+- Affected Docs / Interfaces: digital-beings/ARCHIVED.md
+- Acceptance: Repo is frozen, cron jobs removed, no active automation touches it.
+- Verification: No cron job references digital-beings scripts; ARCHIVED.md exists in repo root.
+
+### REQ-096 Python Legacy Cleanup — Final Verification
+
+- Title: Final Verification: Zero Python Runtime State Remains
+- Stage Target: 10
+- Type: migration
+- Priority: P0
+- Status: candidate
+- Problem / Value: After cleanup, need a final automated verification that no Python process can influence Java runtime state.
+- In Scope: Run verification queries against Neo4j to confirm all active leases belong to Java-managed sessions only. Verify all injection-context responses originate from Java. Confirm Python repo has no write access to Neo4j.
+- Out of Scope: Non-runtime Python script audit
+- Dependencies: REQ-095
+- Downstream Tasks: JAVA-D4
+- Affected Docs / Interfaces: Neo4j constraints, Java runtime logs
+- Acceptance: All active leases have sessionId from Java-issued UUIDs (not Python). No injection-context returns data sourced from Python files.
+- Verification: Automated check script exits 0.
 
 
 

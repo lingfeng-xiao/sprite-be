@@ -16,6 +16,7 @@ import com.openclaw.digitalbeings.domain.runtime.AuthorityLease;
 import com.openclaw.digitalbeings.domain.runtime.HostContract;
 import com.openclaw.digitalbeings.domain.runtime.RuntimeSession;
 import com.openclaw.digitalbeings.domain.snapshot.ContinuitySnapshot;
+import com.openclaw.digitalbeings.domain.snapshot.PortableSnapshot;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,49 @@ public final class Being {
         this.continuitySnapshots = new ArrayList<>();
         this.domainEvents = new ArrayList<>();
         this.revision = 0;
+    }
+
+    public static Being reconstitute(
+            PortableSnapshot snapshot,
+            List<IdentityFacet> identityFacets,
+            List<RelationshipEntity> relationships,
+            List<RuntimeSession> sessions,
+            List<AuthorityLease> leases,
+            List<ReviewItem> reviewItems,
+            List<OwnerProfileFact> ownerProfileFacts,
+            List<ManagedAgentSpec> managedAgentSpecs,
+            CanonicalProjection canonicalProjection
+    ) {
+        Being being = new Being(
+                new BeingId(snapshot.being().beingId()),
+                snapshot.being().displayName(),
+                snapshot.being().createdAt()
+        );
+        being.revision = snapshot.being().revision();
+        // Use reflection-free approach: add items through existing methods
+        for (IdentityFacet facet : identityFacets) {
+            being.identityFacets.add(facet);
+        }
+        for (RelationshipEntity rel : relationships) {
+            being.relationships.add(rel);
+        }
+        for (RuntimeSession session : sessions) {
+            being.runtimeSessions.add(session);
+        }
+        for (AuthorityLease lease : leases) {
+            being.authorityLeases.add(lease);
+        }
+        for (ReviewItem item : reviewItems) {
+            being.reviewItems.add(item);
+        }
+        for (OwnerProfileFact fact : ownerProfileFacts) {
+            being.ownerProfileFacts.add(fact);
+        }
+        for (ManagedAgentSpec spec : managedAgentSpecs) {
+            being.managedAgentSpecs.add(spec);
+        }
+        being.canonicalProjection = canonicalProjection;
+        return being;
     }
 
     public static Being create(String displayName, String actor, Instant createdAt) {
@@ -121,6 +165,40 @@ public final class Being {
                 .orElseThrow(() -> new DomainRuleViolation("Cannot release an unknown lease."));
         lease.release(actor, now);
         recordEvent(DomainEventType.LEASE_STATUS_CHANGED, actor, now, "Authority lease released: " + lease.leaseId());
+    }
+
+    /**
+     * Hands off the active authority lease from the current session to a new session.
+     * Used for dual-host coordination where the lease must migrate from one host to another
+     * without ever becoming vacant (atomic transition).
+     */
+    public AuthorityLease handoffAuthorityLease(String currentLeaseId, String newSessionId, String actor, Instant now) {
+        String normalizedLeaseId = requireText(currentLeaseId, "currentLeaseId");
+        AuthorityLease currentLease = authorityLeases.stream()
+                .filter(candidate -> candidate.leaseId().equals(normalizedLeaseId))
+                .findFirst()
+                .orElseThrow(() -> new DomainRuleViolation("Cannot handoff an unknown lease."));
+
+        if (!currentLease.isActive()) {
+            throw new DomainRuleViolation("Cannot handoff a lease that is not active.");
+        }
+
+        RuntimeSession newSession = runtimeSessions.stream()
+                .filter(candidate -> candidate.sessionId().equals(requireText(newSessionId, "newSessionId")))
+                .findFirst()
+                .orElseThrow(() -> new DomainRuleViolation("Cannot handoff to an unknown runtime session."));
+
+        if (!newSession.isActive()) {
+            throw new DomainRuleViolation("Cannot handoff to a closed runtime session.");
+        }
+
+        // Release old lease and create new one atomically
+        currentLease.release(actor, now);
+        AuthorityLease newLease = AuthorityLease.activate(newSession.sessionId(), actor, now);
+        authorityLeases.add(newLease);
+        recordEvent(DomainEventType.LEASE_STATUS_CHANGED, actor, now,
+                "Authority lease handed off from " + currentLeaseId + " to " + newLease.leaseId());
+        return newLease;
     }
 
     public ReviewItem draftReview(String lane, String kind, String proposal, String actor, Instant now) {
