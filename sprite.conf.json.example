@@ -1,0 +1,11 @@
+{
+  "spriteName": "小艺",
+  "platform": "PC",
+  "llm": {
+    "provider": "minimax",
+    "apiKey": "YOUR_MINMAX_API_KEY_HERE",
+    "baseUrl": "https://api.minimax.chat/v1",
+    "model": "MiniMax-Text-01",
+    "timeoutMs": 30000
+  }
+}

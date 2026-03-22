@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite - 数字生命</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .emoji {
+            font-size: 1.5rem;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-dot.connected {
+            background: #4ade80;
+        }
+
+        .status-dot.disconnected {
+            background: #ef4444;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: #3b82f6;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e5e5e5;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.assistant .actions {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .message.assistant .actions .action {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+
+        .message.system {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.05);
+            color: #666;
+            font-size: 0.85rem;
+            border-radius: 8px;
+        }
+
+        .input-area {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        #message-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 12px 20px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #message-input:focus {
+            border-color: #3b82f6;
+        }
+
+        #message-input::placeholder {
+            color: #666;
+        }
+
+        #send-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #send-btn:hover {
+            background: #2563eb;
+        }
+
+        #send-btn:disabled {
+            background: #3b82f6;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="emoji">🧚</span> Sprite <span style="font-weight: normal; font-size: 0.9rem; color: #888;">数字生命</span></h1>
+        <div class="status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">连接中...</span>
+        </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div class="input-area">
+        <input type="text" id="message-input" placeholder="和 Sprite 对话..." onkeypress="handleKeyPress(event)">
+        <button id="send-btn" onclick="sendMessage()">发送</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let messageQueue = [];
+
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                isConnected = true;
+                updateStatus(true);
+                flushQueue();
+                addSystemMessage('已连接到 Sprite');
+            };
+
+            ws.onclose = () => {
+                isConnected = false;
+                updateStatus(false);
+                addSystemMessage('连接已断开，5秒后重新连接...');
+                setTimeout(connect, 5000);
+            };
+
+            ws.onerror = () => {
+                addSystemMessage('连接错误');
+            };
+
+            ws.onmessage = (event) => {
+                handleMessage(JSON.parse(event.data));
+            };
+        }
+
+        function updateStatus(connected) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (connected) {
+                dot.className = 'status-dot connected';
+                text.textContent = '在线';
+            } else {
+                dot.className = 'status-dot disconnected';
+                text.textContent = '离线';
+            }
+        }
+
+        function handleMessage(data) {
+            removeTypingIndicator();
+
+            if (data.type === 'response') {
+                addMessage('assistant', data.content, data.actions);
+            } else if (data.type === 'error') {
+                addMessage('assistant', '抱歉：' + data.content);
+            } else if (data.type === 'typing') {
+                showTypingIndicator();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+
+            if (!content) return;
+            if (!isConnected) {
+                messageQueue.push(content);
+                return;
+            }
+
+            addMessage('user', content);
+            input.value = '';
+
+            ws.send(JSON.stringify({
+                type: 'chat',
+                content: content
+            }));
+
+            showTypingIndicator();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function addMessage(role, content, actions = null) {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+
+            if (actions && actions.length > 0) {
+                const actionsHtml = actions.map(a => `<span class="action">${escapeHtml(a)}</span>`).join('');
+                div.innerHTML = `${escapeHtml(content)}<div class="actions">${actionsHtml}</div>`;
+            } else {
+                div.textContent = content;
+            }
+
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addSystemMessage(content) {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message system';
+            div.textContent = content;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message assistant typing-indicator';
+            div.id = 'typing-indicator';
+            div.innerHTML = '<span></span><span></span><span></span>';
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        function flushQueue() {
+            while (messageQueue.length > 0) {
+                const msg = messageQueue.shift();
+                addMessage('user', msg);
+                ws.send(JSON.stringify({ type: 'chat', content: msg }));
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        connect();
+    </script>
+</body>
+</html>

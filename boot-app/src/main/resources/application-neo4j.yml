@@ -1,6 +1,0 @@
-spring:
-  neo4j:
-    uri: ${DIGITAL_BEINGS_NEO4J_URI:bolt://localhost:7687}
-    authentication:
-      username: ${DIGITAL_BEINGS_NEO4J_USERNAME:neo4j}
-      password: ${DIGITAL_BEINGS_NEO4J_PASSWORD:changeit-changeit}

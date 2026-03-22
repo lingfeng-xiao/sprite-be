@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: sprite
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+sprite:
+  cognition:
+    enabled: true
+    interval-ms: 1000
+  llm:
+    enabled: true
+    minmax:
+      api-key: ${MINMAX_API_KEY:default-key}
+      base-url: https://api.minimax.chat
+
+logging:
+  level:
+    com.lingfeng.sprite: DEBUG
+    com.github.oshi: INFO
