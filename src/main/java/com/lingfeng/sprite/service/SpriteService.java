@@ -1,6 +1,7 @@
 package com.lingfeng.sprite.service;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.EvolutionEngine;
 import com.lingfeng.sprite.MemorySystem;
+import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.Sprite;
@@ -72,8 +74,29 @@ public class SpriteService {
         // 创建自我模型
         SelfModel.Self selfModel = SelfModel.Self.createDefault();
 
-        // 创建世界模型
-        WorldModel.World worldModel = WorldModel.World.createDefault();
+        // 创建世界模型（使用配置的owner信息）
+        OwnerModel.Owner configuredOwner = new OwnerModel.Owner(
+            new OwnerModel.OwnerIdentity(
+                appConfig.getOwner().getName() != null ? appConfig.getOwner().getName() : "灵锋",
+                appConfig.getOwner().getOccupation(),
+                List.of()
+            ),
+            new OwnerModel.LifeContext(
+                appConfig.getOwner().getWorkplace(),
+                appConfig.getOwner().getHome(),
+                new OwnerModel.Family(List.of()),
+                List.of()
+            ),
+            List.of(), List.of(), List.of(),
+            null,
+            List.of(), List.of(),
+            new OwnerModel.TrustLevel(0.5f),
+            null, null,
+            new OwnerModel.DigitalFootprint(List.of(), List.of(), List.of()),
+            List.of(),
+            Instant.now()
+        );
+        WorldModel.World worldModel = new WorldModel.World(configuredOwner);
 
         // 创建推理引擎（使用真实 LLM）
         com.lingfeng.sprite.cognition.ReasoningEngine reasoningEngine = null;

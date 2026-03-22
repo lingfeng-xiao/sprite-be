@@ -1,6 +1,12 @@
 {
   "spriteName": "雪梨",
   "platform": "PC",
+  "owner": {
+    "name": "灵锋",
+    "occupation": "软件工程师",
+    "workplace": "办公室",
+    "home": "家里"
+  },
   "llm": {
     "provider": "minimax",
     "apiKey": "YOUR_MINMAX_API_KEY_HERE",

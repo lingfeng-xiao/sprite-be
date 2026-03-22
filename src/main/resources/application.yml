@@ -19,10 +19,15 @@ sprite:
     enabled: true
     interval-ms: 1000
   llm:
-    enabled: true
+    enabled: false
     minmax:
       api-key: ${MINMAX_API_KEY:default-key}
       base-url: https://api.minimax.chat
+  owner:
+    name: 灵锋
+    occupation: 软件工程师
+    workplace: 办公室
+    home: 家里
 
 logging:
   level:

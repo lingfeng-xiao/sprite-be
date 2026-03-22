@@ -12,6 +12,7 @@ public class AppConfig {
 
     private Cognition cognition = new Cognition();
     private Llm llm = new Llm();
+    private Owner owner = new Owner();
 
     public Cognition getCognition() {
         return cognition;
@@ -27,6 +28,14 @@ public class AppConfig {
 
     public void setLlm(Llm llm) {
         this.llm = llm;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
     }
 
     public static class Cognition {
@@ -89,6 +98,48 @@ public class AppConfig {
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
+        }
+    }
+
+    /**
+     * 主人配置
+     */
+    public static class Owner {
+        private String name;
+        private String occupation;
+        private String workplace;
+        private String home;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getOccupation() {
+            return occupation;
+        }
+
+        public void setOccupation(String occupation) {
+            this.occupation = occupation;
+        }
+
+        public String getWorkplace() {
+            return workplace;
+        }
+
+        public void setWorkplace(String workplace) {
+            this.workplace = workplace;
+        }
+
+        public String getHome() {
+            return home;
+        }
+
+        public void setHome(String home) {
+            this.home = home;
         }
     }
 }
