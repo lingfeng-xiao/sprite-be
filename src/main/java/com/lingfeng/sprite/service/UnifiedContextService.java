@@ -1,6 +1,7 @@
 package com.lingfeng.sprite.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -43,6 +44,10 @@ public class UnifiedContextService {
     // 对话反馈队列（用于异步处理）
     private final ConcurrentMap<String, ConversationFeedback> feedbackQueue = new ConcurrentHashMap<>();
 
+    // 对话历史记录（用于上下文优化）
+    private final ConcurrentMap<String, ChatMessage> chatHistory = new ConcurrentHashMap<>();
+    private static final int MAX_HISTORY_SIZE = 50;
+
     public record ConversationFeedback(
             String sessionId,
             String userMessage,
@@ -50,6 +55,8 @@ public class UnifiedContextService {
             boolean success,
             Instant timestamp
     ) {}
+
+    public record ChatMessage(String role, String content, Instant timestamp) {}
 
     /**
      * 更新上下文（由 SpriteService 定期调用）
@@ -216,15 +223,21 @@ public class UnifiedContextService {
         StringBuilder sb = new StringBuilder();
         sb.append("我是").append(self.identity().displayName()).append("。");
         sb.append("我的本质是：").append(self.identity().essence()).append("。");
+        sb.append("我的进化等级：").append(self.evolutionLevel()).append("（进化次数：").append(self.evolutionCount()).append("）。");
         sb.append("我的价值观：");
 
         for (var value : self.personality().values()) {
-            sb.append(value.name()).append("(").append(value.weight()).append(")、");
+            sb.append(value.name()).append("(").append(String.format("%.2f", value.weight())).append(")、");
         }
 
         sb.append("我的能力：");
         for (var cap : self.capabilities()) {
             sb.append(cap.name()).append("、");
+        }
+
+        // 添加元认知信息
+        if (self.metacognition() != null) {
+            sb.append("自我认知能力：").append(self.metacognition().selfAwarenessLevel()).append("。");
         }
 
         return sb.toString();
@@ -254,6 +267,31 @@ public class UnifiedContextService {
 
         if (owner.workStyle() != null) {
             sb.append("工作风格：").append(owner.workStyle()).append("。");
+        }
+
+        // 信任等级
+        if (owner.trustLevel() != null) {
+            sb.append("信任等级：").append(String.format("%.2f", owner.trustLevel().level())).append("。");
+        }
+
+        // 当前情绪状态
+        if (owner.emotionalState() != null) {
+            sb.append("当前情绪：").append(owner.emotionalState().currentMood().name());
+            sb.append("（强度：").append(String.format("%.2f", owner.emotionalState().intensity())).append("）。");
+        }
+
+        // 近期目标
+        if (owner.goals() != null && !owner.goals().isEmpty()) {
+            sb.append("近期目标：");
+            owner.goals().stream().limit(3).forEach(g -> sb.append(g.description()).append("、"));
+            sb.append("。");
+        }
+
+        // 习惯
+        if (owner.habits() != null && !owner.habits().isEmpty()) {
+            sb.append("已学习习惯：");
+            owner.habits().stream().limit(3).forEach(h -> sb.append(h.pattern()).append("、"));
+            sb.append("。");
         }
 
         return sb.toString();
@@ -290,5 +328,63 @@ public class UnifiedContextService {
             return emotionalState.currentMood().name() + " (强度: " + emotionalState.intensity() + ")";
         }
         return "UNKNOWN";
+    }
+
+    /**
+     * 添加对话消息到历史记录
+     */
+    public void addChatMessage(String sessionId, String role, String content) {
+        ChatMessage msg = new ChatMessage(role, content, Instant.now());
+        chatHistory.put(sessionId + "-" + msg.timestamp().toEpochMilli(), msg);
+
+        // 如果超过最大容量，压缩历史
+        if (chatHistory.size() > MAX_HISTORY_SIZE) {
+            compressHistory();
+        }
+    }
+
+    /**
+     * 压缩对话历史（保留最近一半）
+     */
+    private void compressHistory() {
+        if (chatHistory.size() <= MAX_HISTORY_SIZE / 2) {
+            return;
+        }
+
+        // 按时间排序，保留最近的一半
+        List<ChatMessage> sorted = chatHistory.values().stream()
+                .sorted((a, b) -> a.timestamp().compareTo(b.timestamp()))
+                .toList();
+
+        chatHistory.clear();
+        int start = sorted.size() / 2;
+        for (int i = start; i < sorted.size(); i++) {
+            ChatMessage msg = sorted.get(i);
+            chatHistory.put(sessionIdFromMsg(msg), msg);
+        }
+
+        logger.info("Chat history compressed from {} to {} messages", sorted.size(), chatHistory.size());
+    }
+
+    private String sessionIdFromMsg(ChatMessage msg) {
+        return "session-" + msg.timestamp().toEpochMilli();
+    }
+
+    /**
+     * 获取对话历史（用于构建上下文）
+     */
+    public String getChatHistory() {
+        if (chatHistory.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        chatHistory.values().stream()
+                .sorted((a, b) -> a.timestamp().compareTo(b.timestamp()))
+                .forEach(msg -> {
+                    sb.append(msg.role()).append(": ").append(msg.content()).append("\n");
+                });
+
+        return sb.toString();
     }
 }
