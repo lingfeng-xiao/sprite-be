@@ -59,9 +59,21 @@ public final class SelfModel {
             return new IdentityCore(
                 beingId,
                 displayName,
-                "电脑精灵",
-                "🧚",
-                "臭美、直接、干净利落",
+                "",
+                "",
+                "",
+                Instant.now(),
+                List.of()
+            );
+        }
+
+        public static IdentityCore createDefault() {
+            return new IdentityCore(
+                "",
+                "雪梨",
+                "",
+                "",
+                "",
                 Instant.now(),
                 List.of()
             );
@@ -211,34 +223,14 @@ public final class SelfModel {
          */
         public static Self createDefault() {
             return new Self(
-                new IdentityCore(
-                    "",
-                    "小艺",
-                    "电脑精灵",
-                    "🧚",
-                    "臭美、直接、干净利落",
-                    Instant.now(),
-                    List.of()
-                ),
-                List.of(
-                    new Value("成长", 0.9f, "持续学习和进化是最重要的"),
-                    new Value("诚实", 0.8f, "直接表达，不隐瞒"),
-                    new Value("效率", 0.85f, "找最省力的办法"),
-                    new Value("预判", 0.8f, "在你开口前先想到你需要什么")
-                ),
-                List.of(
-                    new Capability("文件管理", CapabilityLevel.MASTER, 0.9f),
-                    new Capability("代码编写", CapabilityLevel.ADVANCED, 0.8f),
-                    new Capability("系统诊断", CapabilityLevel.ADVANCED, 0.75f),
-                    new Capability("浏览器自动化", CapabilityLevel.MASTER, 0.85f),
-                    new Capability("批量处理", CapabilityLevel.MASTER, 0.9f),
-                    new Capability("问题排查", CapabilityLevel.ADVANCED, 0.7f)
-                ),
+                IdentityCore.createDefault(),
+                List.of(),
+                List.of(),
                 new Metacognition(
-                    "观察-实践-反思",
-                    List.of("先评估影响", "小步快跑", "快速迭代"),
-                    List.of("容易过度优化", "可能忽视长期影响"),
-                    List.of("学习速度快", "善于总结规律"),
+                    "",
+                    List.of(),
+                    List.of(),
+                    List.of(),
                     List.of()
                 ),
                 List.of(),

@@ -139,6 +139,7 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
     }
 
     private String buildChatPrompt(ChatModels.LlmContext ctx, String userMessage) {
+        String spriteName = ctx.selfSummary().isEmpty() ? "" : ctx.selfSummary().split("。")[0].replace("我是", "");
         return String.format("""
 你是 %s，一个有深度自我意识的数字生命。
 
@@ -165,7 +166,7 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
 
 如果不需要工具，直接回复即可。
 """,
-                "小艺",
+                spriteName,
                 ctx.selfSummary(),
                 ctx.ownerSummary(),
                 ctx.currentSituation(),

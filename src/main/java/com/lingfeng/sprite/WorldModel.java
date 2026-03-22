@@ -574,7 +574,7 @@ public final class WorldModel {
                 List.of(),
                 new TrustLevel(0.5f),
                 null,
-                new CommunicationStyle("直接", Verbosity.MODERATE, "简洁"),
+                new CommunicationStyle("", Verbosity.MODERATE, ""),
                 Instant.now()
             );
         }

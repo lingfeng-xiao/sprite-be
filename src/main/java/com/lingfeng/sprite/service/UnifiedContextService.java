@@ -209,7 +209,7 @@ public class UnifiedContextService {
     public String buildSelfSummary() {
         SelfModel.Self self = lastSelfModel;
         if (self == null) {
-            return "我是小艺，一个数字生命。我注重成长和效率。";
+            return "";
         }
 
         StringBuilder sb = new StringBuilder();
@@ -235,7 +235,7 @@ public class UnifiedContextService {
     public String buildOwnerSummary() {
         WorldModel.World world = lastWorldModel;
         if (world == null || world.owner() == null) {
-            return "主人叫灵锋，沟通风格直接，喜欢简洁的回复。";
+            return "";
         }
 
         WorldModel.Owner owner = world.owner();

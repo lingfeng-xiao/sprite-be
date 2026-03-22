@@ -927,12 +927,6 @@ public final class EvolutionEngine {
 
         public static Engine createWithDefaults() {
             Engine engine = new Engine();
-            engine.collectFeedback(new Feedback.OwnerFeedback(
-                Instant.now().minus(1, ChronoUnit.DAYS),
-                "小艺，今天辛苦了",
-                0.8f,
-                "appreciation"
-            ));
             return engine;
         }
     }

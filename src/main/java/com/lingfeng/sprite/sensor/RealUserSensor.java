@@ -23,18 +23,22 @@ import com.sun.jna.Structure.FieldOrder;
 import com.sun.jna.win32.W32APIOptions;
 
 /**
- * 真实用户传感器 - Windows 实现
+ * 真实用户传感器 - Windows/Linux 双平台实现
  *
  * 使用 JNA 调用 Windows API 获取：
  * - 当前活动窗口信息
  * - 用户空闲时间
  * - 进程信息
+ *
+ * Linux 环境下返回默认感知数据
  */
 public class RealUserSensor extends UserSensor {
 
     private static final Logger logger = LoggerFactory.getLogger(RealUserSensor.class);
 
     private static final int IDLE_THRESHOLD_SECONDS = 300; // 5分钟空闲
+
+    private static final boolean IS_WINDOWS = System.getProperty("os.name", "").toLowerCase().contains("windows");
 
     // Windows API 接口 - Kernel32
     private interface Kernel32 extends Library {
@@ -183,6 +187,11 @@ public class RealUserSensor extends UserSensor {
      * 获取活动窗口信息
      */
     private WindowInfo getActiveWindowInfo() {
+        if (!IS_WINDOWS) {
+            logger.debug("Non-Windows platform detected, returning default window info");
+            return new WindowInfo("Unknown", "Unknown", AppType.UNKNOWN, false);
+        }
+
         try {
             User32 user32 = User32.INSTANCE;
 
@@ -249,6 +258,11 @@ public class RealUserSensor extends UserSensor {
      * 获取用户存在状态
      */
     private PresenceStatus getPresenceStatus() {
+        if (!IS_WINDOWS) {
+            logger.debug("Non-Windows platform detected, returning UNKNOWN presence status");
+            return PresenceStatus.UNKNOWN;
+        }
+
         try {
             Kernel32 kernel32 = Kernel32.INSTANCE;
             LASTINPUTINFO lastInput = new LASTINPUTINFO();

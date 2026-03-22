@@ -1,5 +1,5 @@
 {
-  "spriteName": "小艺",
+  "spriteName": "雪梨",
   "platform": "PC",
   "llm": {
     "provider": "minimax",
