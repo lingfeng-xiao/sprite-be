@@ -44,22 +44,43 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
     @Override
     public CompletableFuture<ReasoningEngine.Intent> inferIntent(ReasoningEngine.IntentPrompt prompt) {
         return CompletableFuture.supplyAsync(() -> {
-            String systemPrompt = String.format(
-                "你是一个数字生命的意图识别引擎。\n" +
-                "根据以下信息推断主人的真实意图：\n" +
-                "- 当前情境：%s\n" +
-                "- 近期行为：%s\n" +
-                "- 主人情绪：%s\n" +
-                "- 时间上下文：%s\n\n" +
-                "请推断主人最可能的意图，并以JSON格式返回：\n" +
-                "{\"description\": \"意图描述\", \"confidence\": 0.0-1.0之间的置信度, \"alternatives\": [\"备选意图1\", \"备选意图2\"]}",
+            String systemPrompt = String.format("""
+                你是一个高级意图识别引擎，专门分析数字生命主人的真实意图。
+
+                ## 分析框架
+                人类的意图往往不是表面行为能直接看出的，需要结合：
+                1. 行为模式 - 重复的行为可能暗示习惯性需求
+                2. 情绪状态 - 情绪影响表达方式和真实需求
+                3. 时间上下文 - 不同时间有不同需求模式
+                4. 情境连贯性 - 当前情境与近期行为的关联
+
+                ## 输入信息
+                - 当前情境：%s
+                - 近期行为（共%d条）：%s
+                - 主人情绪：%s
+                - 时间上下文：%s
+
+                ## 分析要求
+                1. 先识别表面意图（直接表达的行为）
+                2. 再分析深层意图（情绪、习惯、潜在需求）
+                3. 考虑时间因素（早中晚、工作日/周末）
+                4. 给出置信度（考虑信息完整度）
+
+                ## 输出格式（严格JSON）
+                {
+                  "description": "主要意图的详细描述",
+                  "confidence": 0.0-1.0之间的置信度（考虑信息完整度）,
+                  "alternatives": ["备选意图1", "备选意图2"]
+                }
+                """,
                 prompt.situation(),
+                prompt.recentActions().size(),
                 String.join("、", prompt.recentActions()),
                 prompt.ownerMood(),
                 prompt.timeContext()
             );
 
-            String response = callMinMax(systemPrompt);
+            String response = callMinMaxWithRetry(systemPrompt, 2);
             return parseIntentResponse(response, prompt);
         });
     }
@@ -67,18 +88,38 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
     @Override
     public CompletableFuture<ReasoningEngine.CausalChain> reasonCausal(ReasoningEngine.CausalPrompt prompt) {
         return CompletableFuture.supplyAsync(() -> {
-            String systemPrompt = String.format(
-                "你是一个因果推理引擎。\n" +
-                "分析以下事件的因果链：\n" +
-                "- 事件：%s\n" +
-                "- 观察：%s\n\n" +
-                "请分析因果关系并返回JSON格式：\n" +
-                "{\"summary\": \"因果链总结\", \"steps\": [\"原因1\", \"中间结果\", \"最终结果\"], \"confidence\": 0.0-1.0之间的置信度}",
+            String systemPrompt = String.format("""
+                你是一个专业的因果推理引擎，擅长分析复杂事件的因果关系。
+
+                ## 因果分析原则
+                1. 直接原因 - 直接导致事件发生的行为/因素
+                2. 根本原因 - 深层动机或长期因素
+                3. 链式因果 - 多步骤的因果传导
+                4. 反事实推理 - 如果不这样会怎样
+
+                ## 输入信息
+                - 关注事件：%s
+                - 观察列表（共%d条）：%s
+
+                ## 分析要求
+                1. 识别直接原因和深层原因
+                2. 构建因果链（至少3步）
+                3. 考虑时间序列（前因后果）
+                4. 评估置信度（考虑证据充分度）
+
+                ## 输出格式（严格JSON）
+                {
+                  "summary": "因果链的简洁总结（一句话）",
+                  "steps": ["原因1", "中间过程1", "中间过程2", "最终结果"],
+                  "confidence": 0.0-1.0之间的置信度
+                }
+                """,
                 prompt.event(),
+                prompt.observations().size(),
                 String.join("、", prompt.observations())
             );
 
-            String response = callMinMax(systemPrompt);
+            String response = callMinMaxWithRetry(systemPrompt, 2);
             return parseCausalChainResponse(response);
         });
     }
@@ -290,8 +331,23 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
                 return "";
             }
         } catch (Exception e) {
+            logger.debug("MinMax API call failed: {}", e.getMessage());
             return "";
         }
+    }
+
+    /**
+     * 带重试的 MinMax 调用
+     */
+    private String callMinMaxWithRetry(String prompt, int maxRetries) {
+        for (int i = 0; i < maxRetries; i++) {
+            String response = callMinMax(prompt);
+            if (!response.isEmpty()) {
+                return response;
+            }
+            logger.debug("MinMax API call retry {}/{}", i + 1, maxRetries);
+        }
+        return "";
     }
 
     private ReasoningEngine.Intent parseIntentResponse(String response, ReasoningEngine.IntentPrompt original) {
@@ -324,15 +380,39 @@ public class MinMaxLlmReasoner implements ReasoningEngine.LlmReasoner {
     }
 
     private String inferSimpleIntent(ReasoningEngine.IntentPrompt prompt) {
-        if (prompt.ownerMood().toLowerCase().contains("焦虑")) {
-            return "解决某个问题或得到安慰";
-        } else if (prompt.ownerMood().toLowerCase().contains("开心")) {
-            return "分享喜悦或继续当前活动";
-        } else if (prompt.recentActions().size() > 5) {
-            return "继续当前的模式化行为";
-        } else {
-            return "进行某种互动";
+        String mood = prompt.ownerMood().toLowerCase();
+        int actionCount = prompt.recentActions().size();
+        String situation = prompt.situation().toLowerCase();
+
+        // 基于情绪推断
+        if (mood.contains("焦虑") || mood.contains("烦躁")) {
+            return "解决某个问题、得到安慰或分散注意力";
+        } else if (mood.contains("开心") || mood.contains("兴奋")) {
+            return "分享喜悦、继续当前活动或寻求更多乐趣";
+        } else if (mood.contains("疲惫") || mood.contains("困倦")) {
+            return "休息、减少活动或寻求轻松互动";
+        } else if (mood.contains("低落") || mood.contains("悲伤")) {
+            return "得到安慰、分散注意力或寻求支持";
         }
+
+        // 基于行为模式推断
+        if (actionCount > 10) {
+            return "继续当前的模式化行为或习惯性任务";
+        } else if (actionCount == 0) {
+            return "开始新活动或进行探索性互动";
+        }
+
+        // 基于情境推断
+        if (situation.contains("工作") || situation.contains("办公")) {
+            return "完成任务、获取信息或提高效率";
+        } else if (situation.contains("休息") || situation.contains("回家")) {
+            return "放松、处理个人事务或享受休闲";
+        } else if (situation.contains("会议") || situation.contains("讨论")) {
+            return "沟通交流、分享观点或协作";
+        }
+
+        // 默认推断
+        return "进行某种互动或获取帮助";
     }
 
     private ReasoningEngine.CausalChain parseCausalChainResponse(String response) {
