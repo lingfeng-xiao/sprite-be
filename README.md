@@ -99,6 +99,49 @@ System.out.println("行动建议: " + result.actionRecommendation());
 System.out.println("LLM推理: " + result.reasoningResult());
 ```
 
+### 4. S11服务使用示例
+
+```java
+import com.lingfeng.sprite.service.*;
+
+// Webhook集成
+WebhookService webhookService = new WebhookService();
+webhookService.registerEndpoint(
+    "my-webhook",
+    "https://example.com/webhook",
+    "secret",
+    List.of(WebhookService.EventType.SPRITE_STARTED, WebhookService.EventType.EMOTION_CHANGED)
+);
+webhookService.triggerEvent(WebhookService.EventType.SPRITE_STARTED);
+
+// 外部API调用
+ExternalApiAdapterService apiService = new ExternalApiAdapterService();
+apiService.registerEndpoint(new ExternalApiAdapterService.ApiEndpoint(
+    "weather", "Weather API", ExternalApiAdapterService.ApiType.WEATHER,
+    "https://api.weather.com", "api-key", null, true
+));
+ExternalApiAdapterService.ApiResponse response = apiService.getWeather("Beijing");
+
+// 配置热更新
+HotReloadConfigService configService = new HotReloadConfigService();
+configService.loadConfig("/path/to/config.json");
+configService.startWatching("/path/to/config.json");
+configService.registerCallback("/path/to/config.json", (path, data) -> {
+    System.out.println("配置已更新: " + data);
+});
+
+// 性能监控
+PerformanceMonitorService monitor = new PerformanceMonitorService();
+PerformanceMonitorService.PerformanceSnapshot snapshot = monitor.getSnapshot();
+System.out.println("内存使用: " + snapshot.memory().heapUsagePercent() + "%");
+monitor.recordValue("custom.metric", 42.0);
+
+// API文档生成
+ApiDocService apiDoc = new ApiDocService();
+apiDoc.registerEndpoint("GET", "/api/status", "状态查询", "获取系统状态");
+String openApiJson = apiDoc.exportToJson();
+```
+
 ## 文档
 
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - 完整架构文档
