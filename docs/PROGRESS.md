@@ -60,6 +60,7 @@
 ### 阶段目标
 1. S3-1: 情绪历史追踪
 2. S3-2: 周内模式识别
+3. S3-3: 时间模式预测
 
 ### 任务状态
 
@@ -67,6 +68,7 @@
 |----|------|------|--------|----------|----------|
 | S3-1 | 情绪历史追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S3-2 | 周内模式识别 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S3-3 | 时间模式预测 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
 - S3-1:
@@ -84,6 +86,14 @@
   - 添加 `getPredictedContactScore()` - 获取联系分数
   - 新增 `/api/sprite/emotions/contact-advice` 端点
   - 新增 `/api/sprite/emotions/optimal-windows` 端点
+- S3-3:
+  - 增强 `EmotionHistoryService.java` - 添加时间模式预测
+  - 添加 `TimePatternPrediction` 和 `EmotionTrend` 记录类型
+  - 添加 `predictEmotion()` - 预测指定时间的情绪
+  - 添加 `getEmotionTrend()` - 获取情绪趋势分析
+  - 添加 `predictTomorrowEmotion()` - 预测明天的情绪
+  - 新增 `/api/sprite/emotions/predict` 端点
+  - 新增 `/api/sprite/emotions/trend` 端点
 
 ---
 

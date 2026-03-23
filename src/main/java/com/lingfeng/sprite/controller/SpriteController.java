@@ -178,6 +178,34 @@ public class SpriteController {
     }
 
     /**
+     * S3-3: GET /api/sprite/emotions/predict - 预测指定时间的情绪
+     */
+    @GetMapping("/emotions/predict")
+    public ResponseEntity<EmotionHistoryService.TimePatternPrediction> predictEmotion(
+            @RequestParam(required = false) String date,
+            @RequestParam(defaultValue = "12") int hour) {
+        java.time.LocalDate targetDate;
+        if (date != null && !date.isEmpty()) {
+            targetDate = java.time.LocalDate.parse(date);
+        } else {
+            targetDate = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Shanghai"));
+        }
+        EmotionHistoryService.TimePatternPrediction prediction =
+                emotionHistoryService.predictEmotion(targetDate, hour);
+        return ResponseEntity.ok(prediction);
+    }
+
+    /**
+     * S3-3: GET /api/sprite/emotions/trend - 获取情绪趋势
+     */
+    @GetMapping("/emotions/trend")
+    public ResponseEntity<EmotionHistoryService.EmotionTrend> getEmotionTrend(
+            @RequestParam(defaultValue = "7") int days) {
+        EmotionHistoryService.EmotionTrend trend = emotionHistoryService.getEmotionTrend(days);
+        return ResponseEntity.ok(trend);
+    }
+
+    /**
      * POST /api/sprite/start - 启动 Sprite
      */
     @PostMapping("/start")

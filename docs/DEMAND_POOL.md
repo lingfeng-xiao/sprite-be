@@ -20,7 +20,7 @@
 | S2-4 | 情绪响应模型 | ✅ done | Sprint-S2 |
 | S3-1 | 情绪历史追踪 | ✅ done | Sprint-S3 |
 | S3-2 | 周内模式识别 | ✅ done | Sprint-S3 |
-| S3-3 | 时间模式预测 | todo | Sprint-S3 |
+| S3-3 | 时间模式预测 | ✅ done | Sprint-S3 |
 | S3-4 | 时机优化 | todo | Sprint-S3 |
 | S4-1 | 定时导出任务 | todo | Sprint-S4 |
 | S4-2 | GitHub API集成 | todo | Sprint-S4 |
@@ -268,6 +268,29 @@
 **涉及文件**:
 - `EmotionHistoryService.java` (增强 - 添加周模式分析)
 - `SpriteController.java` (修改 - 添加联系建议API端点)
+
+---
+
+### S3-3: 时间模式预测
+
+**所属阶段**: S3 - 情绪时间模式
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 基于历史数据进行时间模式预测
+
+**实现内容**:
+1. 基于历史情绪数据预测指定时间的情绪状态
+2. 分析情绪变化趋势（改善/稳定/下降）
+3. 提供预测置信度
+4. 支持查询未来时间的预测
+
+**依赖**: S3-1, S3-2
+**验收标准**: 能预测未来时间的情绪状态和趋势
+
+**涉及文件**:
+- `EmotionHistoryService.java` (增强 - 添加预测功能)
+- `SpriteController.java` (修改 - 添加预测API端点)
 
 ---
 

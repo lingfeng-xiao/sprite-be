@@ -136,6 +136,28 @@ public class EmotionHistoryService {
     ) {}
 
     /**
+     * S3-3: 时间模式预测
+     */
+    public record TimePatternPrediction(
+            LocalDate date,
+            int hour,
+            Mood predictedMood,
+            float confidence,
+            float contactScore,
+            String basis
+    ) {}
+
+    /**
+     * S3-3: 情绪趋势分析
+     */
+    public record EmotionTrend(
+            String direction,      // "improving", "stable", "declining"
+            float changeRate,     // 变化率
+            int dataPoints,
+            String summary
+    ) {}
+
+    /**
      * 记录当前情绪状态
      * 由 CognitionController 或感知系统调用
      */
@@ -499,6 +521,125 @@ public class EmotionHistoryService {
                 .findFirst()
                 .map(OptimalContactWindow::score)
                 .orElse(0.5f); // 默认中性
+    }
+
+    /**
+     * S3-3: 预测指定日期和时间的情绪状态
+     */
+    public TimePatternPrediction predictEmotion(LocalDate date, int hour) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        List<EmotionRecord> recentRecords = getRecentRecords(30);
+
+        // 按星期和小时筛选
+        List<EmotionRecord> matchingRecords = recentRecords.stream()
+                .filter(r -> r.timestamp().atZone(TIMEZONE).getDayOfWeek() == dayOfWeek)
+                .filter(r -> r.timestamp().atZone(TIMEZONE).getHour() == hour)
+                .toList();
+
+        Mood predictedMood;
+        float confidence;
+        String basis;
+
+        if (matchingRecords.isEmpty()) {
+            // 没有精确匹配，使用当天的普遍情绪
+            predictedMood = getPredictedMoodForDay(dayOfWeek);
+            confidence = 0.3f;
+            basis = "基于" + dayOfWeek + "普遍情绪推测";
+        } else {
+            // 计算最常见的情绪
+            predictedMood = matchingRecords.stream()
+                    .map(EmotionRecord::mood)
+                    .collect(Collectors.groupingBy(m -> m, Collectors.counting()))
+                    .entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .map(Map.Entry::getKey)
+                    .orElse(Mood.NEUTRAL);
+
+            // 置信度基于样本数量
+            confidence = Math.min(0.9f, matchingRecords.size() * 0.1f + 0.3f);
+            basis = "基于" + matchingRecords.size() + "条历史记录";
+        }
+
+        float contactScore = getPredictedContactScore(dayOfWeek, hour);
+
+        return new TimePatternPrediction(date, hour, predictedMood, confidence, contactScore, basis);
+    }
+
+    /**
+     * S3-3: 获取情绪趋势分析
+     * 分析最近N天的情绪变化趋势
+     */
+    public EmotionTrend getEmotionTrend(int days) {
+        List<EmotionRecord> recentRecords = getRecentRecords(days);
+
+        if (recentRecords.size() < 3) {
+            return new EmotionTrend("stable", 0f, recentRecords.size(), "数据不足，无法判断趋势");
+        }
+
+        // 按日期分组计算平均情绪分数
+        LocalDate today = LocalDate.now(TIMEZONE);
+        Map<LocalDate, Float> dailyScores = new HashMap<>();
+
+        for (int i = 0; i < days; i++) {
+            LocalDate date = today.minusDays(i);
+            List<EmotionRecord> dayRecords = emotionHistoryByDate.get(date);
+            if (dayRecords != null && !dayRecords.isEmpty()) {
+                float avgScore = dayRecords.stream()
+                        .mapToFloat(EmotionRecord::sentimentScore)
+                        .average()
+                        .orElse(0.5f);
+                dailyScores.put(date, avgScore);
+            }
+        }
+
+        if (dailyScores.size() < 2) {
+            return new EmotionTrend("stable", 0f, dailyScores.size(), "数据不足，无法判断趋势");
+        }
+
+        // 计算趋势
+        List<Map.Entry<LocalDate, Float>> sorted = new ArrayList<>(dailyScores.entrySet());
+        sorted.sort(Map.Entry.comparingByKey());
+
+        // 比较前半部分和后半部分的平均分
+        int mid = sorted.size() / 2;
+        float firstHalfAvg = sorted.subList(0, mid).stream()
+                .mapToDouble(Map.Entry::getValue)
+                .average()
+                .orElse(0.5f);
+        float secondHalfAvg = sorted.subList(mid, sorted.size()).stream()
+                .mapToDouble(Map.Entry::getValue)
+                .average()
+                .orElse(0.5f);
+
+        float changeRate = secondHalfAvg - firstHalfAvg;
+
+        String direction;
+        if (changeRate > 0.1f) {
+            direction = "improving";
+        } else if (changeRate < -0.1f) {
+            direction = "declining";
+        } else {
+            direction = "stable";
+        }
+
+        String summary;
+        if (changeRate > 0.1f) {
+            summary = String.format("情绪状态呈改善趋势，提升%.0f%%", changeRate * 100);
+        } else if (changeRate < -0.1f) {
+            summary = String.format("情绪状态需关注，下降%.0f%%", Math.abs(changeRate) * 100);
+        } else {
+            summary = "情绪状态基本稳定";
+        }
+
+        return new EmotionTrend(direction, changeRate, dailyScores.size(), summary);
+    }
+
+    /**
+     * S3-3: 预测明天的情绪状态
+     */
+    public TimePatternPrediction predictTomorrowEmotion(int hour) {
+        LocalDate tomorrow = LocalDate.now(TIMEZONE).plusDays(1);
+        return predictEmotion(tomorrow, hour);
     }
 
     private String getDayName(DayOfWeek day) {
