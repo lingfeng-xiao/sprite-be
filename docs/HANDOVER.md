@@ -10,7 +10,7 @@
 
 | 阶段 | 名称 | 状态 |
 |------|------|------|
-| S1 | 可靠性加固 | **✅ 完成** |
+| S1 | 可靠性加固 | **✅ 已完成** |
 | S2 | 主人反馈学习 | 待开始 |
 | S3 | 情绪时间模式 | 待开始 |
 | S4 | 记忆GitHub持久化 | 待开始 |
@@ -25,19 +25,51 @@
 
 ---
 
-## 正在做什么
+## Sprint-S1 停止原因
 
-**S1 已完成** - Sprint-S1 可靠性加固全部完成
+**已完成当前可推进的最高优先级任务**
 
-**下一步最优先**:
-1. 开始 S2-1: 主人响应追踪
-2. 或开始 S5-1: RealUserSensor Linux适配
+S1 (P0可靠性加固) 是最高优先级任务，已全部完成。根据停止条件第5条"已完成当前可推进的最高优先级任务"，停止当前循环。
 
-**S1完成内容**:
-1. HealthMonitorService - 健康监控服务（内存告警 + LLM状态）
-2. /api/sprite/health - 健康检查API端点
-3. MinMaxLlmReasoner降级处理 - 连续3次失败自动降级
-4. ReasoningEngine启发式切换 - LLM降级时自动使用启发式推理
+---
+
+## Sprint-S1 完成内容
+
+### S1-1: 服务器内存告警监控 ✅
+- 新增 `HealthMonitorService.java`
+- 内存阈值80%，超过触发通知
+- 30分钟冷却避免重复告警
+
+### S1-2: LLM API失败降级处理 ✅
+- 增强 `MinMaxLlmReasoner.java`
+- 连续3次失败自动降级
+- 每5分钟检查是否恢复
+
+### S1-3: 系统健康状态API ✅
+- 新增 `/api/sprite/health` 端点
+- 返回内存使用率、LLM状态等健康详情
+
+---
+
+## 下一步最优先
+
+1. **S2-1: 主人响应追踪** - P1优先级，追踪主人对主动消息的响应
+2. **S5-1: RealUserSensor Linux适配** - 技术债，修复跨平台问题
+
+---
+
+## 关键文件状态
+
+| 文件 | 修改类型 | 说明 |
+|------|----------|------|
+| `MemoryRetrievalService.java` | 新增(S6) | 情境感知记忆检索服务 |
+| `BehaviorEmotionInferrer.java` | 新增(S6) | 行为信号情感推断器 |
+| `CognitionController.java` | 修改(S6) | 集成记忆检索 |
+| `DecisionEngine.java` | 修改(S6) | 支持记忆触发动作 |
+| `ReasoningEngine.java` | 修改(S6,S1) | S6增加memoryHighlights; S1增加降级检测 |
+| `HealthMonitorService.java` | 新增(S1) | 健康监控服务 |
+| `MinMaxLlmReasoner.java` | 修改(S1) | 失败追踪和降级处理 |
+| `SpriteController.java` | 修改(S1) | 添加健康检查端点 |
 
 ---
 
