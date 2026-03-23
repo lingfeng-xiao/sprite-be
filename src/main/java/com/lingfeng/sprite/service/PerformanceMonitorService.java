@@ -17,9 +17,10 @@ import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 /**
- * S11-4: 性能监控服务
+ * S11-4: 性能监控服务 - S13-4: 添加Spring服务注解
  *
  * 提供运行时性能指标收集和监控：
  * - JVM内存使用
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * - 自定义指标
  * - 性能历史
  */
+@Service
 public class PerformanceMonitorService {
 
     private static final Logger logger = LoggerFactory.getLogger(PerformanceMonitorService.class);

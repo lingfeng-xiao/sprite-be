@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.List;
 
 import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.EvolutionEngine;
@@ -24,6 +25,7 @@ import com.lingfeng.sprite.service.OwnerEmotionDashboardService;
 import com.lingfeng.sprite.service.EvolutionDashboardService;
 import com.lingfeng.sprite.service.CognitionDashboardService;
 import com.lingfeng.sprite.service.ExternalApiAdapterService;
+import com.lingfeng.sprite.service.PerformanceMonitorService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -46,6 +48,7 @@ public class SpriteController {
     private final EvolutionDashboardService evolutionDashboardService;
     private final CognitionDashboardService cognitionDashboardService;
     private final ExternalApiAdapterService externalApiService;
+    private final PerformanceMonitorService performanceMonitorService;
 
     public SpriteController(
             SpriteService spriteService,
@@ -58,7 +61,8 @@ public class SpriteController {
             OwnerEmotionDashboardService emotionDashboardService,
             EvolutionDashboardService evolutionDashboardService,
             CognitionDashboardService cognitionDashboardService,
-            ExternalApiAdapterService externalApiService
+            ExternalApiAdapterService externalApiService,
+            PerformanceMonitorService performanceMonitorService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
@@ -71,6 +75,7 @@ public class SpriteController {
         this.evolutionDashboardService = evolutionDashboardService;
         this.cognitionDashboardService = cognitionDashboardService;
         this.externalApiService = externalApiService;
+        this.performanceMonitorService = performanceMonitorService;
     }
 
     /**
@@ -445,6 +450,26 @@ public class SpriteController {
             @RequestParam(defaultValue = "zh") String to) {
         ExternalApiAdapterService.ApiResponse response = externalApiService.translate(text, from, to);
         return ResponseEntity.ok(response);
+    }
+
+    // ==================== S13-4: 性能监控接口 ====================
+
+    /**
+     * S13-4: GET /api/sprite/monitor/alerts - 检查性能告警并触发Webhook
+     */
+    @GetMapping("/monitor/alerts")
+    public ResponseEntity<List<PerformanceMonitorService.Alert>> checkAlerts() {
+        List<PerformanceMonitorService.Alert> alerts = performanceMonitorService.checkAlerts();
+        return ResponseEntity.ok(alerts);
+    }
+
+    /**
+     * S13-4: GET /api/sprite/monitor/snapshot - 获取性能快照
+     */
+    @GetMapping("/monitor/snapshot")
+    public ResponseEntity<PerformanceMonitorService.PerformanceSnapshot> getSnapshot() {
+        PerformanceMonitorService.PerformanceSnapshot snapshot = performanceMonitorService.getSnapshot();
+        return ResponseEntity.ok(snapshot);
     }
 
     /**
