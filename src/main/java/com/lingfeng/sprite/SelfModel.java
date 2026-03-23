@@ -200,7 +200,76 @@ public final class SelfModel {
         SKILL_ACQUIRED,
         WEAKNESS_RECOGNIZED,
         GOAL_ACHIEVED,
-        IDENTITY_DEEPENED
+        IDENTITY_DEEPENED,
+        AUTONOMY_LEVEL_CHANGED
+    }
+
+    // ==================== S22 自主意识属性 ====================
+
+    /**
+     * 意识层级
+     */
+    public enum AwarenessLevel {
+        REACTIVE(1),
+        DELIBERATIVE(2),
+        SELF_AWARE(3);
+
+        private final int level;
+
+        AwarenessLevel(int level) {
+            this.level = level;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+    }
+
+    /**
+     * 自主意识状态
+     */
+    public record AutonomousState(
+        AwarenessLevel awarenessLevel,
+        float autonomyFactor,
+        float selfReflectionRate,
+        List<String> activeGoalIds,
+        Instant lastReflectionTime,
+        Instant lastAutonomousAction
+    ) {
+        public AutonomousState {
+            activeGoalIds = activeGoalIds != null ? List.copyOf(activeGoalIds) : List.of();
+        }
+
+        public static AutonomousState createDefault() {
+            return new AutonomousState(
+                AwarenessLevel.REACTIVE,
+                0.3f,
+                0.2f,
+                List.of(),
+                Instant.now(),
+                Instant.now()
+            );
+        }
+
+        public AutonomousState withAwarenessLevel(AwarenessLevel level) {
+            return new AutonomousState(level, autonomyFactor, selfReflectionRate, activeGoalIds, lastReflectionTime, lastAutonomousAction);
+        }
+
+        public AutonomousState withAutonomyFactor(float factor) {
+            return new AutonomousState(awarenessLevel, factor, selfReflectionRate, activeGoalIds, lastReflectionTime, lastAutonomousAction);
+        }
+
+        public AutonomousState withActiveGoalIds(List<String> goalIds) {
+            return new AutonomousState(awarenessLevel, autonomyFactor, selfReflectionRate, goalIds, lastReflectionTime, lastAutonomousAction);
+        }
+
+        public AutonomousState withLastReflectionTime(Instant time) {
+            return new AutonomousState(awarenessLevel, autonomyFactor, selfReflectionRate, activeGoalIds, time, lastAutonomousAction);
+        }
+
+        public AutonomousState withLastAutonomousAction(Instant time) {
+            return new AutonomousState(awarenessLevel, autonomyFactor, selfReflectionRate, activeGoalIds, lastReflectionTime, time);
+        }
     }
 
     // ==================== 分身感知 ====================
@@ -231,6 +300,86 @@ public final class SelfModel {
 
         public Avatars() {
             this(List.of());
+        }
+    }
+
+    // ==================== 自我学习 (S21) ====================
+
+    /**
+     * 已学习的技能 - 通过自我学习获得
+     */
+    public record LearnedSkill(
+        String id,
+        String name,
+        String description,
+        Instant acquiredAt,
+        float confidence,
+        List<String> triggers,
+        String procedure
+    ) {
+        public LearnedSkill {
+            if (id == null) id = "";
+            if (name == null) name = "";
+            if (description == null) description = "";
+            triggers = triggers != null ? List.copyOf(triggers) : List.of();
+            if (procedure == null) procedure = "";
+        }
+    }
+
+    /**
+     * 自我目标 - 用于自我评估和目标设定
+     */
+    public record SelfGoal(
+        String id,
+        String description,
+        String category,
+        float targetProgress,
+        float currentProgress,
+        Instant createdAt,
+        Instant deadline,
+        GoalPriority priority,
+        GoalState state
+    ) {
+        public float progressPercentage() {
+            if (targetProgress() == 0) return 0;
+            return Math.min(currentProgress() / targetProgress(), 1.0f);
+        }
+
+        public boolean isAchieved() {
+            return progressPercentage() >= 0.95f;
+        }
+
+        public enum GoalPriority { HIGH, MEDIUM, LOW }
+        public enum GoalState { ACTIVE, COMPLETED, ABANDONED }
+    }
+
+    /**
+     * 学习指标 - 追踪自我学习进度
+     */
+    public record LearningMetrics(
+        int totalInteractionsAnalyzed,
+        int skillsAcquired,
+        int goalsSet,
+        int goalsAchieved,
+        float overallSuccessRate,
+        Instant lastAnalysisTime,
+        Instant lastSkillAcquired,
+        List<LearnedSkill> recentSkills,
+        List<SelfGoal> activeGoals
+    ) {
+        public LearningMetrics {
+            if (recentSkills == null) recentSkills = List.of();
+            if (activeGoals == null) activeGoals = List.of();
+        }
+
+        public static LearningMetrics empty() {
+            return new LearningMetrics(
+                0, 0, 0, 0, 0.5f,
+                Instant.now(),
+                Instant.now(),
+                List.of(),
+                List.of()
+            );
         }
     }
 
@@ -270,11 +419,19 @@ public final class SelfModel {
         Metacognition metacognition,
         List<GrowthEvent> growthHistory,
         int evolutionLevel,
-        int evolutionCount
+        int evolutionCount,
+        List<LearnedSkill> learnedSkills,
+        List<SelfGoal> selfGoals,
+        LearningMetrics learningMetrics,
+        AutonomousState autonomousState
     ) {
         public Self {
             capabilities = capabilities != null ? List.copyOf(capabilities) : List.of();
             growthHistory = growthHistory != null ? List.copyOf(growthHistory) : List.of();
+            learnedSkills = learnedSkills != null ? List.copyOf(learnedSkills) : List.of();
+            selfGoals = selfGoals != null ? List.copyOf(selfGoals) : List.of();
+            if (learningMetrics == null) learningMetrics = LearningMetrics.empty();
+            if (autonomousState == null) autonomousState = AutonomousState.createDefault();
         }
 
         /**
@@ -295,7 +452,11 @@ public final class SelfModel {
                 ),
                 List.of(),
                 1,
-                0
+                0,
+                List.of(),
+                List.of(),
+                LearningMetrics.empty(),
+                AutonomousState.createDefault()
             );
         }
 
@@ -310,7 +471,7 @@ public final class SelfModel {
             GrowthEvent event = new GrowthEvent(Instant.now(), type, description, before, after, trigger);
             List<GrowthEvent> newHistory = new ArrayList<>(growthHistory);
             newHistory.add(event);
-            return new Self(identity, personality, capabilities, avatars, metacognition, newHistory, evolutionLevel, evolutionCount + 1);
+            return new Self(identity, personality, capabilities, avatars, metacognition, newHistory, evolutionLevel, evolutionCount + 1, learnedSkills, selfGoals, learningMetrics);
         }
 
         /**
@@ -356,7 +517,10 @@ public final class SelfModel {
                 metacognition.withReflection(reflection),
                 growthHistory,
                 evolutionLevel,
-                evolutionCount
+                evolutionCount,
+                learnedSkills,
+                selfGoals,
+                learningMetrics
             );
         }
 
@@ -373,15 +537,136 @@ public final class SelfModel {
 
         // With methods for immutable updates
         public Self withIdentity(IdentityCore newIdentity) {
-            return new Self(newIdentity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
+            return new Self(newIdentity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
         }
 
         public Self withCapabilities(List<Capability> newCapabilities) {
-            return new Self(identity, personality, newCapabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
+            return new Self(identity, personality, newCapabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
         }
 
         public Self withPersonality(Personality newPersonality) {
-            return new Self(identity, newPersonality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount);
+            return new Self(identity, newPersonality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, learningMetrics);
+        }
+
+        // S21: Self-learning methods
+
+        /**
+         * 添加已学习技能
+         */
+        public Self addLearnedSkill(LearnedSkill skill) {
+            List<LearnedSkill> newSkills = new ArrayList<>(learnedSkills);
+            newSkills.add(skill);
+            LearningMetrics newMetrics = new LearningMetrics(
+                learningMetrics.totalInteractionsAnalyzed(),
+                learningMetrics.skillsAcquired() + 1,
+                learningMetrics.goalsSet(),
+                learningMetrics.goalsAchieved(),
+                learningMetrics.overallSuccessRate(),
+                learningMetrics.lastAnalysisTime(),
+                Instant.now(),
+                newSkills.stream().limit(10).toList(),
+                selfGoals
+            );
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, newSkills, selfGoals, newMetrics);
+        }
+
+        /**
+         * 添加自我目标
+         */
+        public Self addSelfGoal(SelfGoal goal) {
+            List<SelfGoal> newGoals = new ArrayList<>(selfGoals);
+            newGoals.add(goal);
+            LearningMetrics newMetrics = new LearningMetrics(
+                learningMetrics.totalInteractionsAnalyzed(),
+                learningMetrics.skillsAcquired(),
+                learningMetrics.goalsSet() + 1,
+                learningMetrics.goalsAchieved(),
+                learningMetrics.overallSuccessRate(),
+                learningMetrics.lastAnalysisTime(),
+                learningMetrics.lastSkillAcquired(),
+                learnedSkills.stream().limit(10).toList(),
+                newGoals
+            );
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, newGoals, newMetrics);
+        }
+
+        /**
+         * 更新自我目标进度
+         */
+        public Self updateSelfGoalProgress(String goalId, float progress) {
+            List<SelfGoal> updatedGoals = new ArrayList<>();
+            int goalsAchieved = learningMetrics.goalsAchieved();
+
+            for (SelfGoal goal : selfGoals) {
+                if (goal.id().equals(goalId)) {
+                    SelfGoal.GoalState newState = progress >= 0.95f ? SelfGoal.GoalState.COMPLETED : SelfGoal.GoalState.ACTIVE;
+                    if (progress >= 0.95f && goal.state() != SelfGoal.GoalState.COMPLETED) {
+                        goalsAchieved++;
+                    }
+                    updatedGoals.add(new SelfGoal(
+                        goal.id(),
+                        goal.description(),
+                        goal.category(),
+                        goal.targetProgress(),
+                        progress,
+                        goal.createdAt(),
+                        goal.deadline(),
+                        goal.priority(),
+                        newState
+                    ));
+                } else {
+                    updatedGoals.add(goal);
+                }
+            }
+
+            LearningMetrics newMetrics = new LearningMetrics(
+                learningMetrics.totalInteractionsAnalyzed(),
+                learningMetrics.skillsAcquired(),
+                learningMetrics.goalsSet(),
+                goalsAchieved,
+                learningMetrics.overallSuccessRate(),
+                Instant.now(),
+                learningMetrics.lastSkillAcquired(),
+                learnedSkills.stream().limit(10).toList(),
+                updatedGoals
+            );
+
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, updatedGoals, newMetrics);
+        }
+
+        /**
+         * 更新学习指标
+         */
+        public Self updateLearningMetrics(int interactionsAnalyzed, float successRate) {
+            LearningMetrics newMetrics = new LearningMetrics(
+                interactionsAnalyzed,
+                learningMetrics.skillsAcquired(),
+                learningMetrics.goalsSet(),
+                learningMetrics.goalsAchieved(),
+                successRate,
+                Instant.now(),
+                learningMetrics.lastSkillAcquired(),
+                learnedSkills.stream().limit(10).toList(),
+                selfGoals
+            );
+            return new Self(identity, personality, capabilities, avatars, metacognition, growthHistory, evolutionLevel, evolutionCount, learnedSkills, selfGoals, newMetrics);
+        }
+
+        /**
+         * 获取活动目标
+         */
+        public List<SelfGoal> getActiveGoals() {
+            return selfGoals.stream()
+                .filter(g -> g.state() == SelfGoal.GoalState.ACTIVE)
+                .sorted((a, b) -> {
+                    int priorityCompare = b.priority().compareTo(a.priority());
+                    if (priorityCompare != 0) return priorityCompare;
+                    if (a.deadline() != null && b.deadline() != null) {
+                        return a.deadline().compareTo(b.deadline());
+                    }
+                    return 0;
+                })
+                .collect(Collectors.toList());
         }
     }
 }

@@ -1526,6 +1526,12 @@ public final class EvolutionEngine {
 
             evolutionCount++;
 
+            // ==================== S21: Self-Learning Integration ====================
+            // 应用自我学习改进（S21-3: 持续模型改进）
+            if (selfLearningService != null) {
+                updatedSelf = applySelfLearning(updatedSelf, interactions);
+            }
+
             return new EvolutionResult(
                 true,
                 updatedSelf,
@@ -1536,6 +1542,73 @@ public final class EvolutionEngine {
                 learningLoop.getStats(),
                 outcomeStats
             );
+        }
+
+        /**
+         * 应用自我学习改进（S21-3）
+         */
+        private SelfModel.Self applySelfLearning(SelfModel.Self self, List<OwnerModel.Interaction> interactions) {
+            if (selfLearningService == null || interactions == null || interactions.isEmpty()) {
+                return self;
+            }
+
+            try {
+                // S21-1: 交互历史自我分析
+                var analysis = selfLearningService.analyzePerformance(interactions);
+                logger.info("Self-analysis complete: {} interactions analyzed, success rate={}",
+                    analysis.totalInteractions(), analysis.overallSuccessRate());
+
+                // S21-3: 应用自我改进
+                SelfModel.Self improvedSelf = selfLearningService.applySelfImprovements(analysis, self);
+
+                // S21-2: 从交互中获取技能
+                for (OwnerModel.Interaction interaction : interactions) {
+                    var skillOpt = selfLearningService.acquireFromInteraction(interaction);
+                    if (skillOpt.isPresent()) {
+                        var skill = skillOpt.get();
+                        // 将技能转换为LearnedSkill并添加到自我模型
+                        SelfModel.LearnedSkill learnedSkill = new SelfModel.LearnedSkill(
+                            skill.id(),
+                            skill.name(),
+                            skill.description(),
+                            skill.acquiredAt(),
+                            skill.confidence(),
+                            skill.triggers(),
+                            skill.procedure()
+                        );
+                        improvedSelf = improvedSelf.addLearnedSkill(learnedSkill);
+                        logger.info("Acquired new skill: {}", skill.name());
+                    }
+                }
+
+                // S21-4: 生成并跟踪目标
+                var goals = selfLearningService.generateGoals(analysis);
+                for (var goal : goals) {
+                    SelfModel.SelfGoal selfGoal = new SelfModel.SelfGoal(
+                        goal.id(),
+                        goal.description(),
+                        goal.category(),
+                        goal.targetProgress(),
+                        goal.currentProgress(),
+                        goal.createdAt(),
+                        goal.deadline(),
+                        SelfModel.SelfGoal.GoalPriority.valueOf(goal.priority().name()),
+                        SelfModel.SelfGoal.GoalState.valueOf(goal.state().name())
+                    );
+                    improvedSelf = improvedSelf.addSelfGoal(selfGoal);
+                }
+
+                // 更新学习指标
+                improvedSelf = improvedSelf.updateLearningMetrics(
+                    analysis.totalInteractions(),
+                    analysis.overallSuccessRate()
+                );
+
+                return improvedSelf;
+            } catch (Exception e) {
+                logger.error("Error applying self-learning: {}", e.getMessage());
+                return self;
+            }
         }
 
         private List<String> detectPatterns(List<Feedback> feedback) {
