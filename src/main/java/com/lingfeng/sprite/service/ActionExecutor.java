@@ -14,6 +14,7 @@ import com.lingfeng.sprite.action.ActionResult;
 import com.lingfeng.sprite.action.Actions.CalculatorAction;
 import com.lingfeng.sprite.action.Actions.CalendarAction;
 import com.lingfeng.sprite.action.Actions.EmailAction;
+import com.lingfeng.sprite.action.Actions.KnowledgeBaseAction;
 import com.lingfeng.sprite.action.Actions.LogAction;
 import com.lingfeng.sprite.action.Actions.NotifyAction;
 import com.lingfeng.sprite.action.Actions.RecallMemoryAction;
@@ -46,6 +47,7 @@ public class ActionExecutor {
         registerPlugin("RecallMemory", new RecallMemoryAction(memory));
         registerPlugin("EmailAction", new EmailAction());
         registerPlugin("CalendarAction", new CalendarAction());
+        registerPlugin("KnowledgeBaseAction", new KnowledgeBaseAction());
 
         logger.info("ActionExecutor initialized with {} plugins", actionPlugins.size());
     }
