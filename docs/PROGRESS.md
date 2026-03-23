@@ -170,6 +170,7 @@
 - 2026-03-24: 新增 `EvolutionDashboardServiceTest.java` - 15个单元测试
 - 2026-03-24: 新增 `OwnerEmotionDashboardServiceTest.java` - 20个单元测试
 - 2026-03-24: 新增 `EmotionHistoryServiceTest.java` - 25个单元测试 (情绪历史服务完整覆盖)
+- 2026-03-24: 新增 `FeedbackTrackerServiceTest.java` - 27个单元测试 (主人反馈追踪服务完整覆盖)
 
 ---
 

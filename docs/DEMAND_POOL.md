@@ -98,6 +98,7 @@
 | D8 | 为S10 Dashboard服务添加单元测试 | ✅ done | 循环改进 |
 | D9 | 为S9传感器添加单元测试 | ✅ done | 循环改进 |
 | D10 | 为EmotionHistoryService添加单元测试 | ✅ done | 循环改进 |
+| D11 | 为FeedbackTrackerService添加单元测试 | ✅ done | 循环改进 |
 
 ---
 
