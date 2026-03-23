@@ -1405,6 +1405,7 @@ public final class EvolutionEngine {
         private final SelfModifier selfModifier;
         private final ForgettingMechanism forgettingMechanism;
         private final SnapshotManager snapshotManager;
+        private com.lingfeng.sprite.service.SelfLearningService selfLearningService;
         private int evolutionLevel = 1;
         private int evolutionCount = 0;
         private String lastSnapshotId = null;
@@ -1423,6 +1424,20 @@ public final class EvolutionEngine {
             this.selfModifier = selfModifier != null ? selfModifier : new SelfModifier();
             this.forgettingMechanism = forgettingMechanism != null ? forgettingMechanism : new ForgettingMechanism();
             this.snapshotManager = new SnapshotManager();
+        }
+
+        /**
+         * 设置自我学习服务（S21）
+         */
+        public void setSelfLearningService(com.lingfeng.sprite.service.SelfLearningService service) {
+            this.selfLearningService = service;
+        }
+
+        /**
+         * 获取自我学习服务
+         */
+        public com.lingfeng.sprite.service.SelfLearningService getSelfLearningService() {
+            return selfLearningService;
         }
 
         /**
