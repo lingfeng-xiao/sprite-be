@@ -384,7 +384,7 @@ curl http://localhost:8080/api/sprite/state
 
 1. 先运行 `./mvnw compile` 确保编译通过
 2. 查看 `tail -100 sprite.log` 了解当前状态
-3. 开始 S1-1 开发
+3. 开始 S7-1 邮件动作插件开发
 
 ---
 
