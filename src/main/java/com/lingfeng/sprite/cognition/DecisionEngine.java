@@ -67,15 +67,28 @@ public class DecisionEngine {
      * @param reasoningResult 推理结果
      * @param salienceScore 显著性评分
      * @param selfModel 自我模型（用于价值观权衡）
+     * @param retrievalContext 记忆检索上下文（可选）
      * @return 决策结果
      */
     public DecisionResult decide(
             ReasoningEngine.ReasoningResult reasoningResult,
             PerceptionSystem.SalienceScore salienceScore,
-            SelfModel.Self selfModel
+            SelfModel.Self selfModel,
+            MemoryRetrievalService.RetrievalContext retrievalContext
     ) {
         List<ToolCall> actions = new ArrayList<>();
         Set<String> executedActions = new HashSet<>();
+
+        // 0. 基于记忆检索结果生成回忆触发动作
+        if (retrievalContext != null && !retrievalContext.isEmpty()) {
+            List<ToolCall> recallActions = generateRecallTriggeredActions(retrievalContext);
+            for (ToolCall action : recallActions) {
+                if (!executedActions.contains(action.tool())) {
+                    actions.add(action);
+                    executedActions.add(action.tool());
+                }
+            }
+        }
 
         // 1. 基于显著性检测紧急事务
         if (salienceScore != null && salienceScore.overall() > 0.8) {
@@ -122,7 +135,61 @@ public class DecisionEngine {
             actions = actions.subList(0, 5);
         }
 
-        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult));
+        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext));
+    }
+
+    /**
+     * 兼容旧版本的 decide 方法
+     */
+    public DecisionResult decide(
+            ReasoningEngine.ReasoningResult reasoningResult,
+            PerceptionSystem.SalienceScore salienceScore,
+            SelfModel.Self selfModel
+    ) {
+        return decide(reasoningResult, salienceScore, selfModel, null);
+    }
+
+    /**
+     * 基于检索到的记忆生成触发动作
+     */
+    private List<ToolCall> generateRecallTriggeredActions(MemoryRetrievalService.RetrievalContext context) {
+        List<ToolCall> actions = new ArrayList<>();
+
+        // 1. 如果检索到强烈的情感记忆（正面经验），触发情绪提振
+        if (context.overallRelevance() > 0.5f && !context.relevantEpisodic().isEmpty()) {
+            // 检查是否有类似情绪的成功经验
+            for (String episodic : context.relevantEpisodic()) {
+                if (episodic.contains("【类似情绪】")) {
+                    // 找到类似情绪的正面经验，可以用于情绪提振
+                    Map<String, Object> params = new ConcurrentHashMap<>();
+                    params.put("actionParam", "主人之前在类似情绪下有成功经验：" + episodic);
+                    params.put("timestamp", java.time.Instant.now());
+                    params.put("memoryType", "positive_recall");
+                    actions.add(new ToolCall("NotifyAction", params));
+                    break;
+                }
+            }
+        }
+
+        // 2. 如果检索到程序记忆（技能），增强相关决策置信度
+        if (!context.relevantProcedural().isEmpty()) {
+            Map<String, Object> params = new ConcurrentHashMap<>();
+            params.put("actionParam", "相关技能记忆：" + String.join(", ", context.relevantProcedural()));
+            params.put("timestamp", java.time.Instant.now());
+            params.put("memoryType", "skill_recall");
+            actions.add(new ToolCall("Remember", params));
+        }
+
+        // 3. 如果检索到感知模式（习惯），预判主人需求
+        if (!context.relevantPatterns().isEmpty()) {
+            Map<String, Object> params = new ConcurrentHashMap<>();
+            params.put("actionParam", "检测到习惯模式：" + String.join(", ", context.relevantPatterns()));
+            params.put("timestamp", java.time.Instant.now());
+            params.put("memoryType", "pattern_recall");
+            actions.add(new ToolCall("Remember", params));
+        }
+
+        return actions;
     }
 
     /**
@@ -194,7 +261,8 @@ public class DecisionEngine {
      */
     private String buildReason(List<ToolCall> actions,
                                PerceptionSystem.SalienceScore salienceScore,
-                               ReasoningEngine.ReasoningResult reasoningResult) {
+                               ReasoningEngine.ReasoningResult reasoningResult,
+                               MemoryRetrievalService.RetrievalContext retrievalContext) {
         StringBuilder reason = new StringBuilder();
 
         if (salienceScore != null) {
@@ -204,6 +272,11 @@ public class DecisionEngine {
         if (reasoningResult != null && reasoningResult.hasLlmSupport()) {
             if (reason.length() > 0) reason.append(", ");
             reason.append("推理支持: ").append(reasoningResult.outputs().size()).append(" 条");
+        }
+
+        if (retrievalContext != null && !retrievalContext.isEmpty()) {
+            if (reason.length() > 0) reason.append(", ");
+            reason.append("记忆检索: ").append(String.format("%.0f%%", retrievalContext.overallRelevance() * 100));
         }
 
         if (actions.size() > 0) {

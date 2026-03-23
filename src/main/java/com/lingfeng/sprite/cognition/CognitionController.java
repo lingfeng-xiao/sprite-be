@@ -129,11 +129,12 @@ public class CognitionController {
             pipelineOutput.salienceScore().overall()
         ));
 
-        // 9. 生成行动建议（使用决策引擎）
+        // 9. 生成行动建议（使用决策引擎，包含记忆检索上下文）
         DecisionEngine.DecisionResult decisionResult = decisionEngine.decide(
             reasoningResult,
             pipelineOutput.salienceScore(),
-            selfModel
+            selfModel,
+            retrievalContext
         );
 
         // 同时保留旧的 ActionRecommendation 用于日志
