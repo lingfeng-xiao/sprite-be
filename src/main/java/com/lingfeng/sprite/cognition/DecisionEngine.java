@@ -6,6 +6,7 @@ import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 
 import java.util.*;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -166,6 +167,10 @@ public class DecisionEngine {
     private float highConfidenceThreshold = 0.8f;
     private float mediumConfidenceThreshold = 0.5f;
     private float lowConfidenceThreshold = 0.3f;
+
+    // S6-3: 决策历史存储
+    private final List<DecisionHistory> decisionHistory = new ArrayList<>();
+    private static final int MAX_HISTORY_SIZE = 100; // 最多保留100条决策记录
 
     public DecisionEngine(WorldModel.World worldModel) {
         this.worldModel = worldModel;
@@ -575,7 +580,13 @@ public class DecisionEngine {
         // S6-2: 计算置信度摘要
         ConfidenceSummary confidence = calculateConfidenceSummary(reasoningResult, retrievalContext, evaluation);
 
-        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext), evaluation, confidence);
+        // S6-3: 构建决策结果
+        DecisionResult result = new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext), evaluation, confidence);
+
+        // S6-3: 记录决策到历史
+        recordDecision(result);
+
+        return result;
     }
 
     /**
@@ -753,6 +764,174 @@ public class DecisionEngine {
         public float getConfidence() {
             return confidence != null ? confidence.overallConfidence() : 0f;
         }
+    }
+
+    /**
+     * S6-3: 决策历史记录
+     */
+    public record DecisionHistory(
+            Instant timestamp,
+            List<ToolCall> actions,
+            String reason,
+            MultiDimensionalEvaluation evaluation,
+            ConfidenceSummary confidence,
+            int actionCount
+    ) {}
+
+    /**
+     * S6-3: 决策统计
+     */
+    public record DecisionStatistics(
+            int totalDecisions,
+            int totalActions,
+            Map<String, Integer> actionTypeCounts,  // 各动作类型出现次数
+            float averageConfidence,
+            float averageOverallScore,
+            Instant lastDecisionTime,
+            Map<String, Float> dimensionAverageScores
+    ) {}
+
+    /**
+     * S6-3: 决策历史摘要
+     */
+    public record DecisionHistorySummary(
+            List<DecisionHistory> recentDecisions,
+            DecisionStatistics statistics,
+            String timeRange
+    ) {}
+
+    /**
+     * S6-3: 记录一条决策到历史
+     */
+    public void recordDecision(DecisionResult result) {
+        DecisionHistory history = new DecisionHistory(
+                Instant.now(),
+                result.actions(),
+                result.reason(),
+                result.evaluation(),
+                result.confidence(),
+                result.actions() != null ? result.actions().size() : 0
+        );
+        decisionHistory.add(history);
+
+        // 保持历史记录在限制范围内
+        while (decisionHistory.size() > MAX_HISTORY_SIZE) {
+            decisionHistory.remove(0);
+        }
+    }
+
+    /**
+     * S6-3: 获取决策历史
+     */
+    public List<DecisionHistory> getDecisionHistory() {
+        return new ArrayList<>(decisionHistory);
+    }
+
+    /**
+     * S6-3: 获取最近的N条决策历史
+     */
+    public List<DecisionHistory> getRecentDecisions(int count) {
+        int size = Math.min(count, decisionHistory.size());
+        return new ArrayList<>(decisionHistory.subList(decisionHistory.size() - size, decisionHistory.size()));
+    }
+
+    /**
+     * S6-3: 获取决策统计
+     */
+    public DecisionStatistics getDecisionStatistics() {
+        if (decisionHistory.isEmpty()) {
+            return new DecisionStatistics(
+                    0, 0,
+                    Map.of(),
+                    0f, 0f,
+                    null,
+                    Map.of()
+            );
+        }
+
+        int totalDecisions = decisionHistory.size();
+        int totalActions = 0;
+        Map<String, Integer> actionTypeCounts = new ConcurrentHashMap<>();
+        float totalConfidence = 0f;
+        float totalScore = 0f;
+        Map<DecisionDimension, Float> dimensionTotals = new EnumMap<>(DecisionDimension.class);
+
+        for (DecisionDimension dim : DecisionDimension.values()) {
+            dimensionTotals.put(dim, 0f);
+        }
+
+        for (DecisionHistory history : decisionHistory) {
+            totalActions += history.actionCount();
+
+            // 统计动作类型
+            if (history.actions() != null) {
+                for (ToolCall action : history.actions()) {
+                    actionTypeCounts.merge(action.tool(), 1, Integer::sum);
+                }
+            }
+
+            // 累计置信度
+            if (history.confidence() != null) {
+                totalConfidence += history.confidence().overallConfidence();
+            }
+
+            // 累计评分
+            if (history.evaluation() != null) {
+                totalScore += history.evaluation().overallScore();
+
+                // 累计各维度评分
+                for (DimensionScore ds : history.evaluation().dimensionScores()) {
+                    dimensionTotals.merge(ds.dimension(), ds.weightedScore(), Float::sum);
+                }
+            }
+        }
+
+        // 计算各维度平均值
+        Map<String, Float> dimensionAverages = new HashMap<>();
+        for (Map.Entry<DecisionDimension, Float> entry : dimensionTotals.entrySet()) {
+            dimensionAverages.put(entry.getKey().name(), entry.getValue() / totalDecisions);
+        }
+
+        return new DecisionStatistics(
+                totalDecisions,
+                totalActions,
+                actionTypeCounts,
+                totalConfidence / totalDecisions,
+                totalScore / totalDecisions,
+                decisionHistory.get(decisionHistory.size() - 1).timestamp(),
+                dimensionAverages
+        );
+    }
+
+    /**
+     * S6-3: 获取指定时间范围内的决策历史
+     */
+    public List<DecisionHistory> getDecisionHistorySince(Instant since) {
+        return decisionHistory.stream()
+                .filter(h -> h.timestamp().isAfter(since))
+                .toList();
+    }
+
+    /**
+     * S6-3: 获取决策历史摘要
+     */
+    public DecisionHistorySummary getDecisionHistorySummary(int recentCount) {
+        List<DecisionHistory> recent = getRecentDecisions(recentCount);
+        DecisionStatistics stats = getDecisionStatistics();
+
+        String timeRange = recent.isEmpty() ? "无历史记录" :
+                String.format("%s 至 %s",
+                        recent.get(0).timestamp(),
+                        recent.get(recent.size() - 1).timestamp());
+
+        return new DecisionHistorySummary(recent, stats, timeRange);
+    }
+
+    /**
+     * S6-3: 清空决策历史
+     */
+    public void clearDecisionHistory() {
+        decisionHistory.clear();
     }
 
     /**
