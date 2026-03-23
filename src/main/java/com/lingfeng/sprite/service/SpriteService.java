@@ -184,12 +184,17 @@ public class SpriteService {
                 );
                 logger.info("Executed tool '{}': success={}, message={}",
                     toolCall.tool(), execResult.success(), execResult.message());
+
+                // 收集动作执行反馈到进化引擎
+                recordActionFeedback(toolCall.tool(), execResult);
             }
         } else if (result.actionRecommendation() != null
                 && !result.actionRecommendation().recommendations().isEmpty()) {
             // 降级：使用旧的字符串格式
             for (String action : result.actionRecommendation().recommendations()) {
-                actionExecutor.execute(action, buildActionContext(null, result));
+                ActionResult execResult = actionExecutor.execute(action, buildActionContext(null, result));
+                // 收集动作执行反馈到进化引擎
+                recordActionFeedback(action, execResult);
             }
         }
 
@@ -224,6 +229,50 @@ public class SpriteService {
         }
 
         return context;
+    }
+
+    /**
+     * 记录动作执行反馈到进化引擎
+     */
+    private void recordActionFeedback(String actionType, ActionResult execResult) {
+        try {
+            EvolutionEngine.Feedback feedback = new EvolutionEngine.Feedback.OutcomeFeedback(
+                Instant.now(),
+                actionType,
+                execResult.success(),
+                execResult.message(),
+                calculateImpact(execResult)
+            );
+            sprite.recordFeedback(
+                EvolutionEngine.Feedback.FeedbackSource.OUTCOME_SUCCESS,
+                actionType + ": " + execResult.message(),
+                execResult.message(),
+                execResult.success(),
+                calculateImpact(execResult)
+            );
+            logger.debug("Recorded action feedback: action={}, success={}",
+                actionType, execResult.success());
+        } catch (Exception e) {
+            logger.warn("Failed to record action feedback: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * 根据执行结果计算影响度
+     */
+    private EvolutionEngine.Impact calculateImpact(ActionResult execResult) {
+        if (execResult.success()) {
+            // 成功的动作根据消息内容判断影响度
+            String msg = execResult.message() != null ? execResult.message().toLowerCase() : "";
+            if (msg.contains("找到") || msg.contains("成功")) {
+                return EvolutionEngine.Impact.HIGH;
+            } else if (msg.contains("失败") || msg.contains("错误")) {
+                return EvolutionEngine.Impact.LOW;
+            }
+            return EvolutionEngine.Impact.MEDIUM;
+        } else {
+            return EvolutionEngine.Impact.NEGATIVE;
+        }
     }
 
     /**
