@@ -23,8 +23,59 @@ import java.util.concurrent.ConcurrentHashMap;
  * - 基于意图类型选择对应动作
  * - 置信度加权：confidence 越高，动作越可靠
  * - 动作去重：避免重复执行相同动作
+ *
+ * ## S6-1 多维度决策
+ *
+ * 决策综合考虑以下维度：
+ * - 显著性维度（novelty, relevance, urgency）
+ * - 情绪维度（主人情绪状态和强度）
+ * - 时间维度（当前时间上下文）
+ * - 记忆维度（相关记忆检索结果）
+ * - 偏好维度（主人交互偏好）
  */
 public class DecisionEngine {
+
+    /**
+     * S6-1: 决策维度枚举
+     */
+    public enum DecisionDimension {
+        NOVELTY("显著性-新颖性", 0.15f),
+        RELEVANCE("显著性-相关性", 0.20f),
+        URGENCY("显著性-紧急性", 0.25f),
+        EMOTION("情绪维度", 0.15f),
+        TIME_CONTEXT("时间上下文", 0.10f),
+        MEMORY("记忆维度", 0.10f),
+        PREFERENCE("偏好维度", 0.05f);
+
+        private final String description;
+        private final float defaultWeight;
+
+        DecisionDimension(String description, float defaultWeight) {
+            this.description = description;
+            this.defaultWeight = defaultWeight;
+        }
+
+        public String description() { return description; }
+        public float defaultWeight() { return defaultWeight; }
+    }
+
+    /**
+     * S6-1: 单个维度的评分结果
+     */
+    public record DimensionScore(
+            DecisionDimension dimension,
+            float rawScore,
+            float weightedScore
+    ) {}
+
+    /**
+     * S6-1: 多维度评估结果
+     */
+    public record MultiDimensionalEvaluation(
+            float overallScore,
+            List<DimensionScore> dimensionScores,
+            String reasoning
+    ) {}
 
     // 意图类型 → 动作类型的映射规则
     private static final Map<ReasoningEngine.ReasoningType, String> INTENT_ACTION_MAP = new ConcurrentHashMap<>();
@@ -57,8 +108,192 @@ public class DecisionEngine {
 
     private final WorldModel.World worldModel;
 
+    // S6-1: 维度权重配置
+    private final Map<DecisionDimension, Float> dimensionWeights = new ConcurrentHashMap<>();
+
     public DecisionEngine(WorldModel.World worldModel) {
         this.worldModel = worldModel;
+        // 初始化默认权重
+        for (DecisionDimension dim : DecisionDimension.values()) {
+            dimensionWeights.put(dim, dim.defaultWeight());
+        }
+    }
+
+    /**
+     * S6-1: 获取维度权重
+     */
+    public Map<DecisionDimension, Float> getDimensionWeights() {
+        return new EnumMap<>(dimensionWeights);
+    }
+
+    /**
+     * S6-1: 设置维度权重
+     */
+    public void setDimensionWeight(DecisionDimension dimension, float weight) {
+        if (weight >= 0 && weight <= 1) {
+            dimensionWeights.put(dimension, weight);
+        }
+    }
+
+    /**
+     * S6-1: 重置维度权重到默认值
+     */
+    public void resetDimensionWeights() {
+        for (DecisionDimension dim : DecisionDimension.values()) {
+            dimensionWeights.put(dim, dim.defaultWeight());
+        }
+    }
+
+    /**
+     * S6-1: 多维度评估 - 对给定上下文进行综合多维度评分
+     *
+     * @param salienceScore 显著性评分
+     * @param retrievalContext 记忆检索上下文
+     * @return 多维度评估结果
+     */
+    public MultiDimensionalEvaluation evaluateMultiDimensional(
+            PerceptionSystem.SalienceScore salienceScore,
+            MemoryRetrievalService.RetrievalContext retrievalContext
+    ) {
+        List<DimensionScore> scores = new ArrayList<>();
+        float totalWeightedScore = 0f;
+        StringBuilder reasoning = new StringBuilder();
+
+        // 1. 计算显著性维度评分
+        if (salienceScore != null) {
+            float noveltyRaw = salienceScore.novelty();
+            float noveltyWeighted = noveltyRaw * dimensionWeights.get(DecisionDimension.NOVELTY);
+            scores.add(new DimensionScore(DecisionDimension.NOVELTY, noveltyRaw, noveltyWeighted));
+            totalWeightedScore += noveltyWeighted;
+
+            float relevanceRaw = salienceScore.relevance();
+            float relevanceWeighted = relevanceRaw * dimensionWeights.get(DecisionDimension.RELEVANCE);
+            scores.add(new DimensionScore(DecisionDimension.RELEVANCE, relevanceRaw, relevanceWeighted));
+            totalWeightedScore += relevanceWeighted;
+
+            float urgencyRaw = salienceScore.urgency();
+            float urgencyWeighted = urgencyRaw * dimensionWeights.get(DecisionDimension.URGENCY);
+            scores.add(new DimensionScore(DecisionDimension.URGENCY, urgencyRaw, urgencyWeighted));
+            totalWeightedScore += urgencyWeighted;
+
+            reasoning.append(String.format("显著性: 新颖性=%.2f, 相关性=%.2f, 紧急性=%.2f; ",
+                    noveltyRaw, relevanceRaw, urgencyRaw));
+        }
+
+        // 2. 计算情绪维度评分
+        float emotionRaw = 0f;
+        if (worldModel != null && worldModel.owner() != null
+                && worldModel.owner().emotionalState() != null) {
+            float intensity = worldModel.owner().emotionalState().intensity();
+            OwnerModel.Mood mood = worldModel.owner().emotionalState().currentMood();
+            // 情绪强度作为情绪维度评分，高强度情绪需要关注
+            emotionRaw = intensity;
+            // 负面情绪提高评分（需要更多关注）
+            if (mood == OwnerModel.Mood.ANXIOUS || mood == OwnerModel.Mood.FRUSTRATED) {
+                emotionRaw = Math.min(1.0f, emotionRaw * 1.2f);
+            }
+        }
+        float emotionWeighted = emotionRaw * dimensionWeights.get(DecisionDimension.EMOTION);
+        scores.add(new DimensionScore(DecisionDimension.EMOTION, emotionRaw, emotionWeighted));
+        totalWeightedScore += emotionWeighted;
+        reasoning.append(String.format("情绪=%.2f; ", emotionRaw));
+
+        // 3. 计算时间上下文维度评分
+        float timeRaw = evaluateTimeContext();
+        float timeWeighted = timeRaw * dimensionWeights.get(DecisionDimension.TIME_CONTEXT);
+        scores.add(new DimensionScore(DecisionDimension.TIME_CONTEXT, timeRaw, timeWeighted));
+        totalWeightedScore += timeWeighted;
+        reasoning.append(String.format("时间上下文=%.2f; ", timeRaw));
+
+        // 4. 计算记忆维度评分
+        float memoryRaw = 0f;
+        if (retrievalContext != null && !retrievalContext.isEmpty()) {
+            memoryRaw = retrievalContext.overallRelevance();
+        }
+        float memoryWeighted = memoryRaw * dimensionWeights.get(DecisionDimension.MEMORY);
+        scores.add(new DimensionScore(DecisionDimension.MEMORY, memoryRaw, memoryWeighted));
+        totalWeightedScore += memoryWeighted;
+        reasoning.append(String.format("记忆相关性=%.2f; ", memoryRaw));
+
+        // 5. 计算偏好维度评分
+        float preferenceRaw = evaluatePreference();
+        float preferenceWeighted = preferenceRaw * dimensionWeights.get(DecisionDimension.PREFERENCE);
+        scores.add(new DimensionScore(DecisionDimension.PREFERENCE, preferenceRaw, preferenceWeighted));
+        totalWeightedScore += preferenceWeighted;
+        reasoning.append(String.format("偏好匹配=%.2f; ", preferenceRaw));
+
+        return new MultiDimensionalEvaluation(
+                totalWeightedScore,
+                scores,
+                reasoning.toString()
+        );
+    }
+
+    /**
+     * S6-1: 评估时间上下文维度
+     * 根据当前时间判断是否是联系主人的好时机
+     */
+    private float evaluateTimeContext() {
+        if (worldModel == null || worldModel.owner() == null) {
+            return 0.5f; // 默认中等分数
+        }
+
+        // 获取当前时间上下文
+        var envContext = worldModel.owner().context().environment();
+        if (envContext == null) {
+            return 0.5f;
+        }
+
+        var contextType = envContext.context();
+        if (contextType == null) {
+            return 0.5f;
+        }
+
+        // 根据上下文类型评估时间是否合适
+        return switch (contextType) {
+            case WORK -> 0.8f;      // 工作时间可能需要关注
+            case MEETING -> 0.3f;    // 会议中不合适打扰
+            case COMMUTE -> 0.5f;    // 通勤时间看情况
+            case LEISURE -> 0.9f;    // 休闲时间是好的联系时机
+            case RITUAL -> 0.7f;     // 晨间习惯时间可以
+            case SLEEP -> 0.1f;      // 睡眠时间不合适
+            default -> 0.5f;
+        };
+    }
+
+    /**
+     * S6-1: 评估偏好维度
+     * 根据主人的交互偏好评估当前情况是否合适
+     */
+    private float evaluatePreference() {
+        if (worldModel == null || worldModel.owner() == null) {
+            return 0.5f;
+        }
+
+        // 简化实现：基于主人的联系偏好
+        // 实际应该从 InteractionPreferenceLearningService 获取偏好数据
+        float baseScore = 0.5f;
+
+        // 检查主人情绪
+        if (worldModel.owner().emotionalState() != null) {
+            OwnerModel.Mood mood = worldModel.owner().emotionalState().currentMood();
+            float intensity = worldModel.owner().emotionalState().intensity();
+
+            // 主人情绪不好时减少打扰
+            if (mood == OwnerModel.Mood.ANXIOUS || mood == OwnerModel.Mood.FRUSTRATED) {
+                if (intensity > 0.7f) {
+                    baseScore = 0.3f;
+                }
+            }
+            // 主人情绪好时可以适当增加联系
+            else if (mood == OwnerModel.Mood.HAPPY || mood == OwnerModel.Mood.EXCITED) {
+                if (intensity > 0.6f) {
+                    baseScore = 0.8f;
+                }
+            }
+        }
+
+        return baseScore;
     }
 
     /**
@@ -135,7 +370,10 @@ public class DecisionEngine {
             actions = actions.subList(0, 5);
         }
 
-        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext));
+        // S6-1: 计算多维度评估结果
+        MultiDimensionalEvaluation evaluation = evaluateMultiDimensional(salienceScore, retrievalContext);
+
+        return new DecisionResult(actions, buildReason(actions, salienceScore, reasoningResult, retrievalContext), evaluation);
     }
 
     /**
@@ -292,10 +530,18 @@ public class DecisionEngine {
      */
     public record DecisionResult(
             List<ToolCall> actions,
-            String reason
+            String reason,
+            MultiDimensionalEvaluation evaluation
     ) {
         public boolean hasActions() {
             return actions != null && !actions.isEmpty();
+        }
+
+        /**
+         * 获取决策整体评分
+         */
+        public float getOverallScore() {
+            return evaluation != null ? evaluation.overallScore() : 0f;
         }
     }
 
