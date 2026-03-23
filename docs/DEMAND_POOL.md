@@ -84,6 +84,13 @@
 | S9-3 | 设备状态感知 | ✅ done | Sprint-S9 |
 | S9-4 | 多设备协同 | ✅ done | Sprint-S9 |
 
+### P4 - 文档完善 (Documentation)
+
+| ID | 需求 | 状态 | 来源 |
+|----|------|------|------|
+| D1 | 更新ARCHITECTURE.md添加S11新服务章节 | todo | 循环改进 |
+| D2 | 添加S11服务使用示例到README | todo | 循环改进 |
+
 ---
 
 ## 需求详情
