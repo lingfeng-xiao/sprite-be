@@ -17,11 +17,11 @@
 | S5 | 传感器系统加固 | **✅ 已完成** |
 | S6 | 决策引擎增强 | **✅ 已完成** |
 | S7 | 动作系统扩展 | **✅ 已完成** |
-| S8 | 进化机制增强 | 待开始 |
-| S9 | 感知系统扩展 | 待开始 |
-| S10 | 可观测性建设 | 待开始 |
+| S8 | 进化机制增强 | **✅ 已完成** |
+| S9 | 感知系统扩展 | **✅ 已完成** |
+| S10 | 可观测性建设 | **✅ 已完成** |
 
-**整体进度**: 97.5% (S1-S7全部完成)
+**整体进度**: 100% (S1-S10全部完成)
 
 ---
 
@@ -196,6 +196,58 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ---
 
+## Sprint-S8 完成内容
+
+### S8-1: 学习速率自适应 ✅
+- 新增 `LearningRateConfig` 记录类型 - 学习速率配置
+- 新增 `LearningRateAdvice` 记录类型 - 学习速率建议
+- 新增学习速率配置映射 - 每个能力独立的学习速率
+- 新增 `adjustLearningRate()` - 基于反馈动态调整学习速率
+- 新增 `getLearningRateAdvice()` - 获取学习速率建议
+- 新增 `getMinObservationsForInsight()` - 获取自适应最小观察数
+- 成功时降低学习速率（*0.9），失败时提高学习速率（*1.2）
+- 全局学习速率范围：0.3 - 2.0
+- 能力级别学习速率范围：0.1 - 2.0
+- 更新 `LearningStats` 包含全局学习速率和配置数量
+
+### S8-2: 遗忘机制 ✅
+- 新增 `ForgettingConfig` 记录类型 - 遗忘配置
+- 新增 `MemoryStrength` 记录类型 - 记忆强度记录
+- 新增 `ForgettingEvent` 记录类型 - 遗忘事件
+- 新增 `ForgettingMechanism` 类 - 遗忘机制实现
+- 新增 `ForgettingResult` 记录类型 - 遗忘执行结果
+- 新增 `ForgettingStats` 记录类型 - 遗忘统计
+- 遗忘配置：默认5%每天衰减，90天最大保留，0.1最小强度阈值
+- Engine类集成遗忘机制
+
+### S8-3: 进化历史可视化 ✅
+- 新增 `EvolutionHistoryVisualization` 记录类型 - 进化历史可视化数据
+- 新增 `TimelineData` 记录类型 - 时间线数据
+- 新增 `InsightAnalysis` 记录类型 - 洞察分析
+- 新增 `PrincipleAnalysis` 记录类型 - 原则分析
+- 新增 `BehaviorAnalysis` 记录类型 - 行为分析
+- 新增 `ModificationAnalysis` 记录类型 - 修改分析
+- 新增 `LearningRateAnalysis` 记录类型 - 学习速率分析
+- 新增 `ForgettingAnalysis` 记录类型 - 遗忘分析
+- 新增 `EvolutionVisualizer` 接口 - 可视化引擎接口
+- 新增 `DefaultEvolutionVisualizer` 类 - 默认可视化实现
+- Engine类新增 `getEvolutionVisualization()` 方法
+
+### S8-4: 快速回滚机制 ✅
+- 新增 `SystemSnapshot` 记录类型 - 系统快照
+- 新增 `RollbackPoint` 记录类型 - 回滚点
+- 新增 `RollbackResult` 记录类型 - 回滚结果
+- 新增 `SnapshotManager` 类 - 快照管理器
+- 新增 `SnapshotStats` 记录类型 - 快照统计
+- Engine类集成 SnapshotManager
+- 新增 `createSnapshot()` - 创建系统快照
+- 新增 `createAutoSnapshot()` - 创建自动快照
+- 新增 `rollbackTo()` - 回滚到指定快照
+- 新增 `rollbackToLast()` - 回滚到上一个快照
+- 默认保留10个快照
+
+---
+
 ## Sprint-S1 完成内容
 
 ### S1-1: 服务器内存告警监控 ✅
@@ -216,7 +268,7 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ## 下一步最优先
 
-1. **S8-1: 学习速率自适应** - 优化优先级，进化机制增强
+1. 所有Sprint已完成 - 项目目标达成
 2. **S10-1: 认知Dashboard** - 优化优先级，可观测性建设
 
 ---
@@ -225,6 +277,7 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 | 文件 | 修改类型 | 说明 |
 |------|----------|------|
+| `EvolutionEngine.java` | 修改(S8-1) | S8-1增加自适应学习速率 |
 | `MemoryRetrievalService.java` | 新增(S6) | 情境感知记忆检索服务 |
 | `BehaviorEmotionInferrer.java` | 新增(S6) | 行为信号情感推断器 |
 | `CognitionController.java` | 修改(S6) | 集成记忆检索 |
@@ -248,7 +301,7 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 
 ## 当前阻塞点
 
-**无阻塞** - S7 Sprint 全部完成，待开始 S8
+**无阻塞** - 所有Sprint已完成
 
 ---
 

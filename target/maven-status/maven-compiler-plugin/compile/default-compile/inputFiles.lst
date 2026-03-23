@@ -1,6 +1,10 @@
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\ActionChain.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\ActionPlugin.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\ActionResult.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\CalculatorAction.java
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\CalendarAction.java
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\EmailAction.java
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\KnowledgeBaseAction.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\LogAction.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\NotifyAction.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\action\Actions\RecallMemoryAction.java
@@ -37,8 +41,10 @@ C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\s
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\ActionExecutor.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\AvatarService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\ConversationService.java
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\EmotionHistoryService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\EvolutionService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\FeedbackTrackerService.java
+C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\GitHubBackupService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\HealthMonitorService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\InteractionPreferenceLearningService.java
 C:\Users\16343\.openclaw\digital-beings-java\src\main\java\com\lingfeng\sprite\service\MemoryConsolidationService.java

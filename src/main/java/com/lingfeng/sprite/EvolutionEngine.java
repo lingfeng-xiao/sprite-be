@@ -294,6 +294,61 @@ public final class EvolutionEngine {
     }
 
     /**
+     * 学习速率配置
+     */
+    public record LearningRateConfig(
+        String capabilityName,
+        float currentRate,
+        float minRate,
+        float maxRate,
+        float baseRate,
+        int consecutiveSuccess,
+        int consecutiveFailure,
+        Instant lastAdjusted
+    ) {
+        public LearningRateConfig {
+            if (minRate <= 0) minRate = 0.1f;
+            if (maxRate <= 0) maxRate = 2.0f;
+            if (baseRate <= 0) baseRate = 1.0f;
+            if (currentRate <= 0) currentRate = baseRate;
+            if (consecutiveSuccess < 0) consecutiveSuccess = 0;
+            if (consecutiveFailure < 0) consecutiveFailure = 0;
+        }
+
+        /**
+         * 增加学习速率（失败后加速学习）
+         */
+        public LearningRateConfig increase() {
+            float newRate = Math.min(currentRate * 1.2f, maxRate);
+            return new LearningRateConfig(
+                capabilityName, newRate, minRate, maxRate, baseRate,
+                0, consecutiveFailure + 1, Instant.now()
+            );
+        }
+
+        /**
+         * 降低学习速率（成功后减速学习）
+         */
+        public LearningRateConfig decrease() {
+            float newRate = Math.max(currentRate * 0.9f, minRate);
+            return new LearningRateConfig(
+                capabilityName, newRate, minRate, maxRate, baseRate,
+                consecutiveSuccess + 1, 0, Instant.now()
+            );
+        }
+
+        /**
+         * 重置学习速率到基准
+         */
+        public LearningRateConfig reset() {
+            return new LearningRateConfig(
+                capabilityName, baseRate, minRate, maxRate, baseRate,
+                0, 0, Instant.now()
+            );
+        }
+    }
+
+    /**
      * 学习循环
      */
     public static class LearningLoop {
@@ -306,6 +361,14 @@ public final class EvolutionEngine {
 
         // 能力性能追踪
         private final java.util.Map<String, CapabilityPerformance> capabilityPerformance = new java.util.concurrent.ConcurrentHashMap<>();
+
+        // 学习速率配置
+        private final java.util.Map<String, LearningRateConfig> learningRateConfigs = new java.util.concurrent.ConcurrentHashMap<>();
+
+        // 全局学习速率
+        private float globalLearningRate = 1.0f;
+        private static final float GLOBAL_MIN_RATE = 0.3f;
+        private static final float GLOBAL_MAX_RATE = 2.0f;
 
         // 动作类型 → 能力名称 的映射
         private static final java.util.Map<String, String> ACTION_CAPABILITY_MAP;
@@ -379,6 +442,9 @@ public final class EvolutionEngine {
                 );
             }
             capabilityPerformance.put(capabilityName, current);
+
+            // 调整学习速率
+            adjustLearningRate(capabilityName, success);
         }
 
         /**
@@ -404,6 +470,118 @@ public final class EvolutionEngine {
             return perf.suggestedLevel();
         }
 
+        // ==================== 自适应学习速率 ====================
+
+        /**
+         * 获取学习速率配置
+         */
+        public LearningRateConfig getLearningRateConfig(String capabilityName) {
+            return learningRateConfigs.getOrDefault(capabilityName,
+                new LearningRateConfig(capabilityName, 1.0f, 0.1f, 2.0f, 1.0f, 0, 0, Instant.now()));
+        }
+
+        /**
+         * 获取所有学习速率配置
+         */
+        public java.util.Collection<LearningRateConfig> getAllLearningRateConfigs() {
+            return learningRateConfigs.values();
+        }
+
+        /**
+         * 获取全局学习速率
+         */
+        public float getGlobalLearningRate() {
+            return globalLearningRate;
+        }
+
+        /**
+         * 调整学习速率（基于反馈结果）
+         */
+        public void adjustLearningRate(String capabilityName, boolean success) {
+            LearningRateConfig config = getLearningRateConfig(capabilityName);
+
+            LearningRateConfig newConfig;
+            if (success) {
+                newConfig = config.decrease();
+            } else {
+                newConfig = config.increase();
+            }
+
+            learningRateConfigs.put(capabilityName, newConfig);
+
+            // 调整全局学习速率
+            adjustGlobalLearningRate(success);
+
+            // 动态调整minObservationsForInsight：学习速率越高，需要的观察数越少
+            recalculateMinObservations();
+
+            logger.debug("Learning rate for '{}' adjusted: {} -> {} (success={})",
+                capabilityName, config.currentRate(), newConfig.currentRate(), success);
+        }
+
+        /**
+         * 调整全局学习速率
+         */
+        private void adjustGlobalLearningRate(boolean success) {
+            if (success) {
+                globalLearningRate = Math.max(globalLearningRate * 0.95f, GLOBAL_MIN_RATE);
+            } else {
+                globalLearningRate = Math.min(globalLearningRate * 1.1f, GLOBAL_MAX_RATE);
+            }
+        }
+
+        /**
+         * 重新计算最小观察数（基于全局学习速率）
+         * 学习速率越高，需要的观察数越少（更快产生洞察）
+         */
+        private void recalculateMinObservations() {
+            // 全局学习速率影响洞察生成的敏感度
+            // 这个方法在未来可以用于动态调整minObservationsForInsight
+        }
+
+        /**
+         * 获取调整后的最小观察数
+         */
+        public int getMinObservationsForInsight() {
+            // 学习速率高时，可以更少的观察就产生洞察
+            int adjustedMin = (int) Math.max(2, minObservationsForInsight / globalLearningRate);
+            return adjustedMin;
+        }
+
+        /**
+         * 获取学习速率建议
+         */
+        public LearningRateAdvice getLearningRateAdvice() {
+            List<String> highRateCapabilities = new ArrayList<>();
+            List<String> lowRateCapabilities = new ArrayList<>();
+
+            for (var entry : learningRateConfigs.entrySet()) {
+                LearningRateConfig config = entry.getValue();
+                if (config.currentRate() > config.baseRate() * 1.3f) {
+                    highRateCapabilities.add(entry.getKey() + " (" + String.format("%.2f", config.currentRate()) + ")");
+                } else if (config.currentRate() < config.baseRate() * 0.7f) {
+                    lowRateCapabilities.add(entry.getKey() + " (" + String.format("%.2f", config.currentRate()) + ")");
+                }
+            }
+
+            return new LearningRateAdvice(
+                globalLearningRate,
+                new ArrayList<>(learningRateConfigs.values()),
+                highRateCapabilities,
+                lowRateCapabilities
+            );
+        }
+
+        /**
+         * 学习速率建议
+         */
+        public record LearningRateAdvice(
+            float globalLearningRate,
+            List<LearningRateConfig> configs,
+            List<String> highRateCapabilities,
+            List<String> lowRateCapabilities
+        ) {}
+
         /**
          * 反思 - 从观察中提取洞察
          */
@@ -412,7 +590,9 @@ public final class EvolutionEngine {
                 .filter(o -> o.context().activity() == observation.context().activity())
                 .toList();
 
-            if (recentSameContext.size() < minObservationsForInsight) {
+            // 使用自适应最小观察数
+            int adaptiveMinObservations = getMinObservationsForInsight();
+            if (recentSameContext.size() < adaptiveMinObservations) {
                 return null;
             }
 
@@ -546,7 +726,9 @@ public final class EvolutionEngine {
                 observations.size(),
                 insights.size(),
                 principles.size(),
-                behaviorChanges.size()
+                behaviorChanges.size(),
+                globalLearningRate,
+                learningRateConfigs.size()
             );
         }
     }
@@ -555,7 +737,288 @@ public final class EvolutionEngine {
         int totalObservations,
         int totalInsights,
         int totalPrinciples,
-        int totalBehaviorChanges
+        int totalBehaviorChanges,
+        float globalLearningRate,
+        int configuredCapabilities
+    ) {}
+
+    // ==================== 遗忘机制 ====================
+
+    /**
+     * 遗忘配置
+     */
+    public record ForgettingConfig(
+        float decayRate,           // 衰减率 (每天)
+        int maxAgeDays,            // 最大保留天数
+        float minStrengthThreshold, // 最小强度阈值
+        int maxMemories,           // 最大记忆数量
+        Instant lastForgetting      // 上次遗忘执行时间
+    ) {
+        public ForgettingConfig {
+            if (decayRate <= 0) decayRate = 0.05f;        // 默认每天5%衰减
+            if (maxAgeDays <= 0) maxAgeDays = 90;        // 默认90天
+            if (minStrengthThreshold <= 0) minStrengthThreshold = 0.1f;
+            if (maxMemories <= 0) maxMemories = 1000;
+        }
+
+        public ForgettingConfig() {
+            this(0.05f, 90, 0.1f, 1000, Instant.now());
+        }
+    }
+
+    /**
+     * 记忆强度记录
+     */
+    public record MemoryStrength(
+        String memoryId,
+        String memoryType,
+        float currentStrength,
+        Instant lastAccessed,
+        Instant createdAt,
+        int accessCount
+    ) {}
+
+    /**
+     * 遗忘事件
+     */
+    public record ForgettingEvent(
+        Instant timestamp,
+        String memoryId,
+        String memoryType,
+        float previousStrength,
+        float newStrength,
+        String reason
+    ) {}
+
+    /**
+     * 遗忘机制
+     */
+    public static class ForgettingMechanism {
+        private ForgettingConfig config;
+        private final List<ForgettingEvent> forgettingHistory = new ArrayList<>();
+        private final java.util.Map<String, MemoryStrength> memoryStrengths = new java.util.concurrent.ConcurrentHashMap<>();
+        private static final int MAX_HISTORY = 500;
+
+        public ForgettingMechanism() {
+            this(new ForgettingConfig());
+        }
+
+        public ForgettingMechanism(ForgettingConfig config) {
+            this.config = config != null ? config : new ForgettingConfig();
+        }
+
+        /**
+         * 注册记忆
+         */
+        public void registerMemory(String memoryId, String memoryType) {
+            MemoryStrength strength = new MemoryStrength(
+                memoryId,
+                memoryType,
+                1.0f,  // 初始强度为1.0
+                Instant.now(),
+                Instant.now(),
+                0
+            );
+            memoryStrengths.put(memoryId, strength);
+        }
+
+        /**
+         * 访问记忆（更新访问时间和强度）
+         */
+        public void accessMemory(String memoryId) {
+            MemoryStrength current = memoryStrengths.get(memoryId);
+            if (current != null) {
+                // 访问时增强强度，但不超过1.0
+                float newStrength = Math.min(current.currentStrength() + 0.1f, 1.0f);
+                memoryStrengths.put(memoryId, new MemoryStrength(
+                    memoryId,
+                    current.memoryType(),
+                    newStrength,
+                    Instant.now(),
+                    current.createdAt(),
+                    current.accessCount() + 1
+                ));
+            }
+        }
+
+        /**
+         * 应用时间衰减
+         */
+        public float applyTimeDecay(String memoryId) {
+            MemoryStrength current = memoryStrengths.get(memoryId);
+            if (current == null) return 0f;
+
+            long daysSinceLastAccess = java.time.Duration.between(current.lastAccessed(), Instant.now()).toDays();
+            long daysSinceCreation = java.time.Duration.between(current.createdAt(), Instant.now()).toDays();
+
+            // 基于时间的指数衰减
+            float decayedStrength = current.currentStrength() * (float) Math.pow(1 - config.decayRate(), daysSinceLastAccess);
+
+            // 也考虑创建时间
+            if (daysSinceCreation > config.maxAgeDays()) {
+                decayedStrength = 0f;  // 超过最大天数，直接遗忘
+            }
+
+            // 更新
+            memoryStrengths.put(memoryId, new MemoryStrength(
+                memoryId,
+                current.memoryType(),
+                decayedStrength,
+                current.lastAccessed(),
+                current.createdAt(),
+                current.accessCount()
+            ));
+
+            return decayedStrength;
+        }
+
+        /**
+         * 执行遗忘（清理低强度记忆）
+         */
+        public ForgettingResult executeForgetting(java.util.function.Function<String, Boolean> deleteMemory) {
+            List<ForgettingEvent> events = new ArrayList<>();
+            int totalMemories = memoryStrengths.size();
+
+            // 应用衰减
+            for (String memoryId : new ArrayList<>(memoryStrengths.keySet())) {
+                MemoryStrength current = memoryStrengths.get(memoryId);
+                float previousStrength = current.currentStrength();
+                float newStrength = applyTimeDecay(memoryId);
+
+                if (Float.compare(previousStrength, newStrength) != 0) {
+                    events.add(new ForgettingEvent(
+                        Instant.now(),
+                        memoryId,
+                        current.memoryType(),
+                        previousStrength,
+                        newStrength,
+                        "时间衰减"
+                    ));
+                }
+            }
+
+            // 识别需要遗忘的记忆
+            List<String> toForget = new ArrayList<>();
+            for (var entry : memoryStrengths.entrySet()) {
+                MemoryStrength ms = entry.getValue();
+                if (ms.currentStrength() < config.minStrengthThreshold()) {
+                    toForget.add(entry.getKey());
+                }
+            }
+
+            // 如果记忆数量超过上限，删除最低强度的
+            if (memoryStrengths.size() > config.maxMemories()) {
+                List<MemoryStrength> sorted = memoryStrengths.values().stream()
+                    .sorted((a, b) -> Float.compare(a.currentStrength(), b.currentStrength()))
+                    .toList();
+                int excess = memoryStrengths.size() - config.maxMemories();
+                for (int i = 0; i < excess && i < sorted.size(); i++) {
+                    if (!toForget.contains(sorted.get(i).memoryId())) {
+                        toForget.add(sorted.get(i).memoryId());
+                    }
+                }
+            }
+
+            // 执行遗忘
+            int forgottenCount = 0;
+            for (String memoryId : toForget) {
+                MemoryStrength current = memoryStrengths.get(memoryId);
+                if (current != null) {
+                    boolean deleted = deleteMemory.apply(memoryId);
+                    if (deleted) {
+                        memoryStrengths.remove(memoryId);
+                        forgottenCount++;
+                        events.add(new ForgettingEvent(
+                            Instant.now(),
+                            memoryId,
+                            current.memoryType(),
+                            current.currentStrength(),
+                            0f,
+                            "强度低于阈值或超出容量"
+                        ));
+                    }
+                }
+            }
+
+            // 更新历史
+            forgettingHistory.addAll(events);
+            if (forgettingHistory.size() > MAX_HISTORY) {
+                forgettingHistory.subList(0, forgettingHistory.size() - MAX_HISTORY).clear();
+            }
+
+            // 更新配置中的最后遗忘时间
+            config = new ForgettingConfig(
+                config.decayRate(),
+                config.maxAgeDays(),
+                config.minStrengthThreshold(),
+                config.maxMemories(),
+                Instant.now()
+            );
+
+            return new ForgettingResult(
+                totalMemories,
+                memoryStrengths.size(),
+                forgottenCount,
+                events.size(),
+                new ArrayList<>(forgettingHistory)
+            );
+        }
+
+        /**
+         * 获取记忆强度
+         */
+        public MemoryStrength getMemoryStrength(String memoryId) {
+            return memoryStrengths.get(memoryId);
+        }
+
+        /**
+         * 获取所有记忆强度
+         */
+        public java.util.Collection<MemoryStrength> getAllMemoryStrengths() {
+            return memoryStrengths.values();
+        }
+
+        /**
+         * 获取遗忘统计
+         */
+        public ForgettingStats getStats() {
+            return new ForgettingStats(
+                memoryStrengths.size(),
+                forgettingHistory.size(),
+                forgettingHistory.stream()
+                    .filter(e -> e.timestamp().isAfter(Instant.now().minus(24, java.time.temporal.ChronoUnit.HOURS)))
+                    .count(),
+                config
+            );
+        }
+
+        /**
+         * 更新配置
+         */
+        public void updateConfig(ForgettingConfig newConfig) {
+            this.config = newConfig != null ? newConfig : new ForgettingConfig();
+        }
+    }
+
+    /**
+     * 遗忘结果
+     */
+    public record ForgettingResult(
+        int totalBefore,
+        int totalAfter,
+        int forgottenCount,
+        int decayedCount,
+        List<ForgettingEvent> events
+    ) {}
+
+    /**
+     * 遗忘统计
+     */
+    public record ForgettingStats(
+        int totalMemories,
+        int historySize,
+        long recentForgettingEvents,
+        ForgettingConfig config
     ) {}
 
     // ==================== 自我修改器 ====================
@@ -940,17 +1403,26 @@ public final class EvolutionEngine {
         private final LearningLoop learningLoop;
         private final FeedbackCollector feedbackCollector;
         private final SelfModifier selfModifier;
+        private final ForgettingMechanism forgettingMechanism;
+        private final SnapshotManager snapshotManager;
         private int evolutionLevel = 1;
         private int evolutionCount = 0;
+        private String lastSnapshotId = null;
 
         public Engine() {
-            this(new LearningLoop(), new FeedbackCollector(), new SelfModifier());
+            this(new LearningLoop(), new FeedbackCollector(), new SelfModifier(), new ForgettingMechanism());
         }
 
         public Engine(LearningLoop learningLoop, FeedbackCollector feedbackCollector, SelfModifier selfModifier) {
+            this(learningLoop, feedbackCollector, selfModifier, new ForgettingMechanism());
+        }
+
+        public Engine(LearningLoop learningLoop, FeedbackCollector feedbackCollector, SelfModifier selfModifier, ForgettingMechanism forgettingMechanism) {
             this.learningLoop = learningLoop != null ? learningLoop : new LearningLoop();
             this.feedbackCollector = feedbackCollector != null ? feedbackCollector : new FeedbackCollector();
             this.selfModifier = selfModifier != null ? selfModifier : new SelfModifier();
+            this.forgettingMechanism = forgettingMechanism != null ? forgettingMechanism : new ForgettingMechanism();
+            this.snapshotManager = new SnapshotManager();
         }
 
         /**
@@ -1108,6 +1580,178 @@ public final class EvolutionEngine {
                     new ArrayList<>(selfModifier.getHistory())
             );
         }
+
+        // ==================== 遗忘机制接口 ====================
+
+        /**
+         * 注册记忆用于遗忘追踪
+         */
+        public void registerMemoryForForgetting(String memoryId, String memoryType) {
+            forgettingMechanism.registerMemory(memoryId, memoryType);
+        }
+
+        /**
+         * 访问记忆
+         */
+        public void accessMemoryForForgetting(String memoryId) {
+            forgettingMechanism.accessMemory(memoryId);
+        }
+
+        /**
+         * 执行遗忘
+         */
+        public ForgettingResult executeForgetting(java.util.function.Function<String, Boolean> deleteMemory) {
+            return forgettingMechanism.executeForgetting(deleteMemory);
+        }
+
+        /**
+         * 获取遗忘统计
+         */
+        public ForgettingStats getForgettingStats() {
+            return forgettingMechanism.getStats();
+        }
+
+        /**
+         * 获取记忆强度
+         */
+        public MemoryStrength getMemoryStrength(String memoryId) {
+            return forgettingMechanism.getMemoryStrength(memoryId);
+        }
+
+        /**
+         * 更新遗忘配置
+         */
+        public void updateForgettingConfig(ForgettingConfig config) {
+            forgettingMechanism.updateConfig(config);
+        }
+
+        /**
+         * 获取进化历史可视化
+         */
+        public EvolutionHistoryVisualization getEvolutionVisualization() {
+            return new DefaultEvolutionVisualizer().generateVisualization(this);
+        }
+
+        // ==================== 快照和回滚 ====================
+
+        /**
+         * 创建系统快照
+         */
+        public SystemSnapshot createSnapshot(String label, SelfModel.Self self) {
+            SystemSnapshot snapshot = snapshotManager.createSnapshot(
+                label,
+                self,
+                learningLoop,
+                evolutionLevel,
+                evolutionCount
+            );
+            lastSnapshotId = snapshot.id();
+            logger.info("Created snapshot: {} ({})", label, snapshot.id());
+            return snapshot;
+        }
+
+        /**
+         * 创建自动快照（带条件）
+         */
+        public SystemSnapshot createAutoSnapshot(SelfModel.Self self) {
+            // 每10次进化或等级提升时自动创建快照
+            String label = evolutionCount % 10 == 0 ?
+                "Auto-snapshot at evolution " + evolutionCount :
+                "Level-up snapshot at level " + evolutionLevel;
+            return createSnapshot(label, self);
+        }
+
+        /**
+         * 获取快照
+         */
+        public SystemSnapshot getSnapshot(String id) {
+            return snapshotManager.getSnapshot(id);
+        }
+
+        /**
+         * 获取所有快照
+         */
+        public List<SystemSnapshot> getAllSnapshots() {
+            return snapshotManager.getAllSnapshots();
+        }
+
+        /**
+         * 回滚到指定快照
+         */
+        public RollbackResult rollbackTo(String snapshotId, SelfModel.Self currentSelf) {
+            SystemSnapshot snapshot = snapshotManager.getSnapshot(snapshotId);
+            if (snapshot == null) {
+                return new RollbackResult(false, "Snapshot not found: " + snapshotId, null, Instant.now(), 0, 0);
+            }
+
+            try {
+                int modificationsRolledBack = 0;
+
+                // 计算需要回滚的修改数量
+                int snapshotEvolutionCount = snapshot.evolutionCount();
+                modificationsRolledBack = evolutionCount - snapshotEvolutionCount;
+
+                // 恢复学习循环数据
+                learningLoop.observations.clear();
+                learningLoop.observations.addAll(snapshot.observations());
+                learningLoop.insights.clear();
+                learningLoop.insights.addAll(snapshot.insights());
+                learningLoop.principles.clear();
+                learningLoop.principles.addAll(snapshot.principles());
+                learningLoop.behaviorChanges.clear();
+                learningLoop.behaviorChanges.addAll(snapshot.behaviorChanges());
+
+                // 恢复进化等级
+                evolutionLevel = snapshot.evolutionLevel();
+                evolutionCount = snapshot.evolutionCount();
+
+                logger.info("Rolled back to snapshot: {} (modifications rolled back: {})", snapshotId, modificationsRolledBack);
+
+                return new RollbackResult(
+                    true,
+                    "Successfully rolled back to snapshot",
+                    snapshotId,
+                    Instant.now(),
+                    evolutionLevel,
+                    modificationsRolledBack
+                );
+            } catch (Exception e) {
+                logger.error("Rollback failed: {}", e.getMessage());
+                return new RollbackResult(false, "Rollback failed: " + e.getMessage(), snapshotId, Instant.now(), 0, 0);
+            }
+        }
+
+        /**
+         * 回滚到上一个快照
+         */
+        public RollbackResult rollbackToLast(SelfModel.Self currentSelf) {
+            if (lastSnapshotId != null) {
+                return rollbackTo(lastSnapshotId, currentSelf);
+            }
+            List<SystemSnapshot> recent = snapshotManager.getRecentSnapshots(1);
+            if (!recent.isEmpty()) {
+                return rollbackTo(recent.get(0).id(), currentSelf);
+            }
+            return new RollbackResult(false, "No snapshot available", null, Instant.now(), 0, 0);
+        }
+
+        /**
+         * 删除快照
+         */
+        public boolean deleteSnapshot(String id) {
+            boolean deleted = snapshotManager.deleteSnapshot(id);
+            if (deleted && id.equals(lastSnapshotId)) {
+                lastSnapshotId = null;
+            }
+            return deleted;
+        }
+
+        /**
+         * 获取快照统计
+         */
+        public SnapshotStats getSnapshotStats() {
+            return snapshotManager.getStats();
+        }
     }
 
     public record EvolutionResult(
@@ -1127,6 +1771,540 @@ public final class EvolutionEngine {
         LearningStats learningStats,
         OutcomeStats outcomeStats,
         List<SelfModifier.Modification> recentModifications
+    ) {}
+
+    // ==================== 进化历史可视化 ====================
+
+    /**
+     * 进化历史可视化数据
+     */
+    public record EvolutionHistoryVisualization(
+        int evolutionLevel,
+        int totalEvolutions,
+        TimelineData timeline,
+        InsightAnalysis insights,
+        PrincipleAnalysis principles,
+        BehaviorAnalysis behaviors,
+        ModificationAnalysis modifications,
+        LearningRateAnalysis learningRates,
+        ForgettingAnalysis forgetting
+    ) {}
+
+    /**
+     * 时间线数据
+     */
+    public record TimelineData(
+        List<TimelineEvent> events,
+        Instant startTime,
+        Instant endTime,
+        Duration totalDuration
+    ) {
+        public record TimelineEvent(
+            Instant timestamp,
+            String type,
+            String title,
+            String description,
+            float significance
+        ) {}
+    }
+
+    /**
+     * 洞察分析
+     */
+    public record InsightAnalysis(
+        List<Insight> allInsights,
+        int totalCount,
+        InsightTypeDistribution typeDistribution,
+        ConfidenceTrend confidenceTrend,
+        List<Insight> recentInsights
+    ) {
+        public record InsightTypeDistribution(
+            int behaviorPattern,
+            int preferenceLearned,
+            int skillGapIdentified,
+            int beliefUpdated,
+            int relationshipEffect,
+            int contextAdaptation
+        ) {}
+
+        public record ConfidenceTrend(
+            float averageConfidence,
+            float minConfidence,
+            float maxConfidence,
+            TrendDirection direction
+        ) {
+            public enum TrendDirection { IMPROVING, STABLE, DECLINING }
+        }
+    }
+
+    /**
+     * 原则分析
+     */
+    public record PrincipleAnalysis(
+        List<Principle> allPrinciples,
+        int totalCount,
+        float averageConfidence,
+        List<Principle> mostApplied,
+        List<Principle> highestConfidence
+    ) {}
+
+    /**
+     * 行为分析
+     */
+    public record BehaviorAnalysis(
+        List<BehaviorChange> allChanges,
+        int totalCount,
+        int successfulChanges,
+        int failedChanges,
+        List<String> behaviorPatterns
+    ) {}
+
+    /**
+     * 修改分析
+     */
+    public record ModificationAnalysis(
+        List<SelfModifier.Modification> allModifications,
+        int totalCount,
+        ModificationTypeDistribution typeDistribution,
+        List<SelfModifier.Modification> recentModifications
+    ) {
+        public record ModificationTypeDistribution(
+            int capabilityLevel,
+            int preference,
+            int belief,
+            int valueWeight,
+            int metacognition,
+            int growthHistory
+        ) {}
+    }
+
+    /**
+     * 学习速率分析
+     */
+    public record LearningRateAnalysis(
+        float globalLearningRate,
+        List<LearningRateConfig> capabilityRates,
+        List<String> highRateCapabilities,
+        List<String> lowRateCapabilities,
+        LearningRateTrend trend
+    ) {
+        public record LearningRateTrend(
+            float previousGlobalRate,
+            float currentGlobalRate,
+            TrendDirection direction
+        ) {
+            public enum TrendDirection { INCREASING, DECREASING, STABLE }
+        }
+    }
+
+    /**
+     * 遗忘分析
+     */
+    public record ForgettingAnalysis(
+        int totalTrackedMemories,
+        long recentForgettingEvents,
+        float averageStrength,
+        List<MemoryStrength> weakestMemories,
+        ForgettingConfig config
+    ) {}
+
+    /**
+     * 可视化引擎接口
+     */
+    public interface EvolutionVisualizer {
+        EvolutionHistoryVisualization generateVisualization(Engine engine);
+        TimelineData generateTimeline(Engine engine);
+        InsightAnalysis analyzeInsights(LearningLoop loop);
+        PrincipleAnalysis analyzePrinciples(LearningLoop loop);
+        BehaviorAnalysis analyzeBehaviors(LearningLoop loop);
+        ModificationAnalysis analyzeModifications(SelfModifier modifier);
+        LearningRateAnalysis analyzeLearningRates(LearningLoop loop);
+        ForgettingAnalysis analyzeForgetting(ForgettingMechanism mechanism);
+    }
+
+    /**
+     * 默认可视化实现
+     */
+    public static class DefaultEvolutionVisualizer implements EvolutionVisualizer {
+
+        @Override
+        public EvolutionHistoryVisualization generateVisualization(Engine engine) {
+            return new EvolutionHistoryVisualization(
+                engine.evolutionLevel,
+                engine.evolutionCount,
+                generateTimeline(engine),
+                analyzeInsights(engine.learningLoop),
+                analyzePrinciples(engine.learningLoop),
+                analyzeBehaviors(engine.learningLoop),
+                analyzeModifications(engine.selfModifier),
+                analyzeLearningRates(engine.learningLoop),
+                analyzeForgetting(engine.forgettingMechanism)
+            );
+        }
+
+        @Override
+        public TimelineData generateTimeline(Engine engine) {
+            List<TimelineEvent> events = new ArrayList<>();
+
+            // 添加洞察事件
+            for (Insight insight : engine.learningLoop.insights) {
+                events.add(new TimelineEvent(
+                    insight.timestamp(),
+                    "INSIGHT",
+                    insight.type().name(),
+                    insight.hypothesis(),
+                    insight.confidence()
+                ));
+            }
+
+            // 添加行为改变事件
+            for (BehaviorChange change : engine.learningLoop.behaviorChanges) {
+                events.add(new TimelineEvent(
+                    change.timestamp(),
+                    "BEHAVIOR_CHANGE",
+                    change.afterBehavior().substring(0, Math.min(30, change.afterBehavior().length())),
+                    change.principle().statement(),
+                    change.success() != null && change.success() ? 0.8f : 0.4f
+                ));
+            }
+
+            // 添加修改事件
+            for (SelfModifier.Modification mod : engine.selfModifier.getHistory()) {
+                events.add(new TimelineEvent(
+                    mod.timestamp(),
+                    "MODIFICATION",
+                    mod.type().name() + ": " + mod.target(),
+                    mod.before() + " -> " + mod.after(),
+                    mod.success() ? 0.9f : 0.3f
+                ));
+            }
+
+            // 排序
+            events.sort((a, b) -> a.timestamp().compareTo(b.timestamp()));
+
+            Instant startTime = events.isEmpty() ? Instant.now() : events.get(0).timestamp();
+            Instant endTime = events.isEmpty() ? Instant.now() : events.get(events.size() - 1).timestamp();
+            Duration duration = Duration.between(startTime, endTime);
+
+            return new TimelineData(events, startTime, endTime, duration);
+        }
+
+        @Override
+        public InsightAnalysis analyzeInsights(LearningLoop loop) {
+            List<Insight> insights = loop.insights;
+            int total = insights.size();
+
+            // 类型分布
+            int[] typeCounts = new int[6];
+            for (Insight insight : insights) {
+                typeCounts[insight.type().ordinal()]++;
+            }
+            var typeDist = new InsightAnalysis.InsightTypeDistribution(
+                typeCounts[0], typeCounts[1], typeCounts[2], typeCounts[3], typeCounts[4], typeCounts[5]
+            );
+
+            // 置信度趋势
+            float avgConf = insights.isEmpty() ? 0f :
+                (float) insights.stream().mapToDouble(Insight::confidence).average().orElse(0);
+            float minConf = insights.isEmpty() ? 0f :
+                (float) insights.stream().mapToDouble(Insight::confidence).min().orElse(0);
+            float maxConf = insights.isEmpty() ? 0f :
+                (float) insights.stream().mapToDouble(Insight::confidence).max().orElse(0);
+
+            // 最近洞察
+            List<Insight> recent = insights.size() > 5 ?
+                insights.subList(insights.size() - 5, insights.size()) : insights;
+
+            InsightAnalysis.TrendDirection trendDir = InsightAnalysis.TrendDirection.STABLE;
+            if (recent.size() >= 2) {
+                float older = recent.get(0).confidence();
+                float newer = recent.get(recent.size() - 1).confidence();
+                if (newer > older * 1.1f) trendDir = InsightAnalysis.TrendDirection.IMPROVING;
+                else if (newer < older * 0.9f) trendDir = InsightAnalysis.TrendDirection.DECLINING;
+            }
+
+            return new InsightAnalysis(
+                new ArrayList<>(insights),
+                total,
+                typeDist,
+                new InsightAnalysis.ConfidenceTrend(avgConf, minConf, maxConf, trendDir),
+                recent
+            );
+        }
+
+        @Override
+        public PrincipleAnalysis analyzePrinciples(LearningLoop loop) {
+            List<Principle> principles = loop.principles;
+            int total = principles.size();
+
+            float avgConf = principles.isEmpty() ? 0f :
+                (float) principles.stream().mapToDouble(Principle::confidence).average().orElse(0);
+
+            List<Principle> mostApplied = principles.stream()
+                .sorted((a, b) -> Integer.compare(b.timesApplied(), a.timesApplied()))
+                .limit(5)
+                .toList();
+
+            List<Principle> highestConf = principles.stream()
+                .sorted((a, b) -> Float.compare(b.confidence(), a.confidence()))
+                .limit(5)
+                .toList();
+
+            return new PrincipleAnalysis(
+                new ArrayList<>(principles),
+                total,
+                avgConf,
+                mostApplied,
+                highestConf
+            );
+        }
+
+        @Override
+        public BehaviorAnalysis analyzeBehaviors(LearningLoop loop) {
+            List<BehaviorChange> changes = loop.behaviorChanges;
+            int total = changes.size();
+            int success = (int) changes.stream().filter(c -> Boolean.TRUE.equals(c.success())).count();
+            int failed = (int) changes.stream().filter(c -> Boolean.FALSE.equals(c.success())).count();
+
+            List<String> patterns = changes.stream()
+                .map(BehaviorChange::afterBehavior)
+                .distinct()
+                .limit(10)
+                .toList();
+
+            return new BehaviorAnalysis(
+                new ArrayList<>(changes),
+                total,
+                success,
+                failed,
+                patterns
+            );
+        }
+
+        @Override
+        public ModificationAnalysis analyzeModifications(SelfModifier modifier) {
+            List<SelfModifier.Modification> mods = modifier.getHistory();
+            int total = mods.size();
+
+            int[] typeCounts = new int[6];
+            for (SelfModifier.Modification mod : mods) {
+                typeCounts[mod.type().ordinal()]++;
+            }
+            var typeDist = new ModificationAnalysis.ModificationTypeDistribution(
+                typeCounts[0], typeCounts[1], typeCounts[2], typeCounts[3], typeCounts[4], typeCounts[5]
+            );
+
+            List<SelfModifier.Modification> recent = mods.size() > 10 ?
+                mods.subList(mods.size() - 10, mods.size()) : mods;
+
+            return new ModificationAnalysis(
+                new ArrayList<>(mods),
+                total,
+                typeDist,
+                recent
+            );
+        }
+
+        @Override
+        public LearningRateAnalysis analyzeLearningRates(LearningLoop loop) {
+            float globalRate = loop.getGlobalLearningRate();
+            List<LearningRateConfig> configs = new ArrayList<>(loop.getAllLearningRateConfigs());
+
+            List<String> high = configs.stream()
+                .filter(c -> c.currentRate() > c.baseRate() * 1.3f)
+                .map(c -> c.capabilityName() + " (" + String.format("%.2f", c.currentRate()) + ")")
+                .toList();
+
+            List<String> low = configs.stream()
+                .filter(c -> c.currentRate() < c.baseRate() * 0.7f)
+                .map(c -> c.capabilityName() + " (" + String.format("%.2f", c.currentRate()) + ")")
+                .toList();
+
+            return new LearningRateAnalysis(
+                globalRate,
+                configs,
+                high,
+                low,
+                new LearningRateAnalysis.LearningRateTrend(globalRate, globalRate, LearningRateAnalysis.LearningRateTrend.TrendDirection.STABLE)
+            );
+        }
+
+        @Override
+        public ForgettingAnalysis analyzeForgetting(ForgettingMechanism mechanism) {
+            ForgettingStats stats = mechanism.getStats();
+            List<MemoryStrength> strengths = new ArrayList<>(mechanism.getAllMemoryStrengths());
+
+            float avgStrength = strengths.isEmpty() ? 0f :
+                (float) strengths.stream().mapToDouble(MemoryStrength::currentStrength).average().orElse(0);
+
+            List<MemoryStrength> weakest = strengths.stream()
+                .sorted((a, b) -> Float.compare(a.currentStrength(), b.currentStrength()))
+                .limit(10)
+                .toList();
+
+            return new ForgettingAnalysis(
+                stats.totalMemories(),
+                stats.recentForgettingEvents(),
+                avgStrength,
+                weakest,
+                stats.config()
+            );
+        }
+    }
+
+    // ==================== 快速回滚机制 ====================
+
+    /**
+     * 系统快照
+     */
+    public record SystemSnapshot(
+        String id,
+        Instant timestamp,
+        String label,
+        SelfModel.Self selfSnapshot,
+        List<Observation> observations,
+        List<Insight> insights,
+        List<Principle> principles,
+        List<BehaviorChange> behaviorChanges,
+        int evolutionLevel,
+        int evolutionCount
+    ) {}
+
+    /**
+     * 回滚点
+     */
+    public record RollbackPoint(
+        String snapshotId,
+        Instant timestamp,
+        String reason,
+        int selfEvolutionLevel,
+        int modificationsSince
+    ) {}
+
+    /**
+     * 回滚结果
+     */
+    public record RollbackResult(
+        boolean success,
+        String message,
+        String snapshotId,
+        Instant timestamp,
+        int selfEvolutionLevel,
+        int modificationsRolledBack
+    ) {}
+
+    /**
+     * 快照管理器
+     */
+    public static class SnapshotManager {
+        private final List<SystemSnapshot> snapshots = new ArrayList<>();
+        private final int maxSnapshots;
+        private final java.util.Map<String, SystemSnapshot> snapshotIndex = new java.util.concurrent.ConcurrentHashMap<>();
+
+        public SnapshotManager() {
+            this(10); // 默认保留10个快照
+        }
+
+        public SnapshotManager(int maxSnapshots) {
+            this.maxSnapshots = maxSnapshots > 0 ? maxSnapshots : 10;
+        }
+
+        /**
+         * 创建快照
+         */
+        public SystemSnapshot createSnapshot(
+            String label,
+            SelfModel.Self self,
+            LearningLoop learningLoop,
+            int evolutionLevel,
+            int evolutionCount
+        ) {
+            String id = "snapshot-" + UUID.randomUUID().toString();
+            Instant now = Instant.now();
+
+            SystemSnapshot snapshot = new SystemSnapshot(
+                id,
+                now,
+                label,
+                self,
+                new ArrayList<>(learningLoop.observations),
+                new ArrayList<>(learningLoop.insights),
+                new ArrayList<>(learningLoop.principles),
+                new ArrayList<>(learningLoop.behaviorChanges),
+                evolutionLevel,
+                evolutionCount
+            );
+
+            snapshots.add(snapshot);
+            snapshotIndex.put(id, snapshot);
+
+            // 清理旧快照
+            pruneSnapshots();
+
+            return snapshot;
+        }
+
+        /**
+         * 获取快照
+         */
+        public SystemSnapshot getSnapshot(String id) {
+            return snapshotIndex.get(id);
+        }
+
+        /**
+         * 获取所有快照
+         */
+        public List<SystemSnapshot> getAllSnapshots() {
+            return new ArrayList<>(snapshots);
+        }
+
+        /**
+         * 获取最近的快照
+         */
+        public List<SystemSnapshot> getRecentSnapshots(int count) {
+            if (snapshots.isEmpty()) return List.of();
+            int size = Math.min(count, snapshots.size());
+            return snapshots.subList(snapshots.size() - size, snapshots.size());
+        }
+
+        /**
+         * 删除快照
+         */
+        public boolean deleteSnapshot(String id) {
+            SystemSnapshot snapshot = snapshotIndex.remove(id);
+            if (snapshot != null) {
+                snapshots.remove(snapshot);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * 清理旧快照
+         */
+        private void pruneSnapshots() {
+            while (snapshots.size() > maxSnapshots) {
+                SystemSnapshot oldest = snapshots.remove(0);
+                snapshotIndex.remove(oldest.id());
+            }
+        }
+
+        /**
+         * 获取快照统计
+         */
+        public SnapshotStats getStats() {
+            return new SnapshotStats(
+                snapshots.size(),
+                maxSnapshots,
+                snapshots.isEmpty() ? null : snapshots.get(snapshots.size() - 1).timestamp()
+            );
+        }
+    }
+
+    public record SnapshotStats(
+        int currentCount,
+        int maxCount,
+        Instant lastSnapshotTime
     ) {}
 
     /**

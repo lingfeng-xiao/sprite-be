@@ -43,23 +43,23 @@
 | S7-2 | 日历动作插件 | ✅ done | Sprint-S7 |
 | S7-3 | 知识库查询 | ✅ done | Sprint-S7 |
 | S7-4 | 动作链编排 | ✅ done | Sprint-S7 |
-| S8-1 | 学习速率自适应 | todo | Sprint-S8 |
-| S8-2 | 遗忘机制 | todo | Sprint-S8 |
-| S8-3 | 进化历史可视化 | todo | Sprint-S8 |
-| S8-4 | 快速回滚机制 | todo | Sprint-S8 |
-| S10-1 | 认知Dashboard | todo | Sprint-S10 |
-| S10-2 | 记忆可视化 | todo | Sprint-S10 |
-| S10-3 | 进化历史Dashboard | todo | Sprint-S10 |
-| S10-4 | 主人情绪历史图表 | todo | Sprint-S10 |
+| S8-1 | 学习速率自适应 | ✅ done | Sprint-S8 |
+| S8-2 | 遗忘机制 | ✅ done | Sprint-S8 |
+| S8-3 | 进化历史可视化 | ✅ done | Sprint-S8 |
+| S8-4 | 快速回滚机制 | ✅ done | Sprint-S8 |
+| S10-1 | 认知Dashboard | ✅ done | Sprint-S10 |
+| S10-2 | 记忆可视化 | ✅ done | Sprint-S10 |
+| S10-3 | 进化历史Dashboard | ✅ done | Sprint-S10 |
+| S10-4 | 主人情绪历史图表 | ✅ done | Sprint-S10 |
 
 ### P3 - 探索性功能 (Future)
 
 | ID | 需求 | 状态 | 来源 |
 |----|------|------|------|
-| S9-1 | 声音传感器 | todo | Sprint-S9 |
-| S9-2 | 位置传感器 | todo | Sprint-S9 |
-| S9-3 | 设备状态感知 | todo | Sprint-S9 |
-| S9-4 | 多设备协同 | todo | Sprint-S9 |
+| S9-1 | 声音传感器 | ✅ done | Sprint-S9 |
+| S9-2 | 位置传感器 | ✅ done | Sprint-S9 |
+| S9-3 | 设备状态感知 | ✅ done | Sprint-S9 |
+| S9-4 | 多设备协同 | ✅ done | Sprint-S9 |
 
 ---
 
