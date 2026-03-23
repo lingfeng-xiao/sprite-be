@@ -18,7 +18,7 @@
 | S2-2 | 交互偏好学习 | ✅ done | Sprint-S2 |
 | S2-3 | 反馈调整机制 | ✅ done | Sprint-S2 |
 | S2-4 | 情绪响应模型 | ✅ done | Sprint-S2 |
-| S3-1 | 情绪历史追踪 | todo | Sprint-S3 |
+| S3-1 | 情绪历史追踪 | ✅ done | Sprint-S3 |
 | S3-2 | 周内模式识别 | todo | Sprint-S3 |
 | S3-3 | 时间模式预测 | todo | Sprint-S3 |
 | S3-4 | 时机优化 | todo | Sprint-S3 |
@@ -229,7 +229,7 @@
 
 **所属阶段**: S3 - 情绪时间模式
 **优先级**: P1
-**状态**: todo
+**状态**: done
 
 **背景/目标**: 建立长期情绪追踪数据
 
@@ -242,9 +242,9 @@
 **验收标准**: 能查询任意日期的情绪历史
 
 **涉及文件**:
-- `WorldBuilder.java`
-- `OwnerModel.java`
-- `MemorySystem.java`
+- `WorldBuilder.java` (修改 - 添加情绪记录回调)
+- `EmotionHistoryService.java` (新增 - 情绪历史服务)
+- `SpriteController.java` (修改 - 添加情绪API端点)
 
 ---
 

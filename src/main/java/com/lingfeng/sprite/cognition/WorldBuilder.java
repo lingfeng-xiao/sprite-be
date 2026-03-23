@@ -4,12 +4,14 @@ import com.lingfeng.sprite.PerceptionSystem;
 import com.lingfeng.sprite.OwnerModel;
 import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
+import com.lingfeng.sprite.service.EmotionHistoryService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * 世界模型构建引擎 - 感知 → 主人理解 + 世界知识
@@ -26,6 +28,36 @@ public class WorldBuilder {
     private PerceptionSystem.PresenceStatus lastPresence = null;
     private int presenceStreak = 0;
     private final BehaviorEmotionInferrer emotionInferrer = new BehaviorEmotionInferrer();
+
+    // S3-1: 情绪历史记录回调
+    private Consumer<EmotionRecord> emotionRecordCallback = null;
+
+    /**
+     * S3-1: 情绪记录
+     */
+    public record EmotionRecord(
+            Instant timestamp,
+            OwnerModel.Mood mood,
+            float intensity,
+            String trigger
+    ) {}
+
+    /**
+     * S3-1: 设置情绪记录回调
+     */
+    public void setEmotionRecordCallback(Consumer<EmotionRecord> callback) {
+        this.emotionRecordCallback = callback;
+    }
+
+    /**
+     * S3-1: 记录情绪变化
+     */
+    private void recordEmotion(OwnerModel.Mood mood, float intensity, String trigger) {
+        EmotionHistoryService service = EmotionHistoryService.getInstance();
+        if (service != null) {
+            service.recordEmotion(mood, intensity, trigger);
+        }
+    }
 
     /**
      * 从感知构建世界模型
@@ -103,7 +135,39 @@ public class WorldBuilder {
             }
         }
 
+        // S3-1: 记录情绪变化
+        String trigger = buildEmotionTrigger(perception, finalMood);
+        recordEmotion(finalMood, intensity, trigger);
+
         return world.updateEmotionalState(finalMood, intensity, perception.generateFeelings());
+    }
+
+    /**
+     * S3-1: 构建情绪触因描述
+     */
+    private String buildEmotionTrigger(PerceptionSystem.Perception perception, OwnerModel.Mood mood) {
+        StringBuilder trigger = new StringBuilder();
+
+        // 基于感知来源
+        if (perception.user() != null) {
+            if (perception.user().presence() != null) {
+                trigger.append(perception.user().presence()).append("状态");
+            }
+            if (perception.user().activeWindow() != null) {
+                trigger.append(", 窗口:").append(perception.user().activeWindow().title());
+            }
+        }
+
+        if (perception.platform() != null) {
+            if (perception.platform().battery() != null) {
+                trigger.append(", 电量:").append(perception.platform().battery().chargePercent()).append("%");
+            }
+            if (perception.platform().network() != null) {
+                trigger.append(", 网络:").append(perception.platform().network().isConnected() ? "在线" : "离线");
+            }
+        }
+
+        return trigger.length() > 0 ? trigger.toString() : mood.name();
     }
 
     private List<HabitLearning> learnHabits(

@@ -14,6 +14,7 @@ import com.lingfeng.sprite.Sprite;
 import com.lingfeng.sprite.service.FeedbackTrackerService;
 import com.lingfeng.sprite.service.HealthMonitorService;
 import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
+import com.lingfeng.sprite.service.EmotionHistoryService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -29,17 +30,20 @@ public class SpriteController {
     private final HealthMonitorService healthMonitorService;
     private final FeedbackTrackerService feedbackTrackerService;
     private final InteractionPreferenceLearningService preferenceLearningService;
+    private final EmotionHistoryService emotionHistoryService;
 
     public SpriteController(
             SpriteService spriteService,
             HealthMonitorService healthMonitorService,
             FeedbackTrackerService feedbackTrackerService,
-            InteractionPreferenceLearningService preferenceLearningService
+            InteractionPreferenceLearningService preferenceLearningService,
+            EmotionHistoryService emotionHistoryService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
         this.feedbackTrackerService = feedbackTrackerService;
         this.preferenceLearningService = preferenceLearningService;
+        this.emotionHistoryService = emotionHistoryService;
     }
 
     /**
@@ -128,6 +132,30 @@ public class SpriteController {
         InteractionPreferenceLearningService.InteractionPreferences prefs =
                 preferenceLearningService.getPreferences();
         return ResponseEntity.ok(prefs);
+    }
+
+    /**
+     * GET /api/sprite/emotions - 获取主人情绪历史
+     */
+    @GetMapping("/emotions")
+    public ResponseEntity<EmotionHistoryService.EmotionStats> getEmotionStats() {
+        EmotionHistoryService.EmotionRecord current = emotionHistoryService.getCurrentEmotion();
+        if (current == null) {
+            return ResponseEntity.noContent().build();
+        }
+        // 获取今天的统计
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Shanghai"));
+        EmotionHistoryService.EmotionStats stats = emotionHistoryService.getStatsForDate(today);
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * GET /api/sprite/emotions/weekly - 获取周情绪模式
+     */
+    @GetMapping("/emotions/weekly")
+    public ResponseEntity<EmotionHistoryService.WeeklyPattern> getWeeklyEmotionPattern() {
+        EmotionHistoryService.WeeklyPattern pattern = emotionHistoryService.getWeeklyPattern();
+        return ResponseEntity.ok(pattern);
     }
 
     /**
