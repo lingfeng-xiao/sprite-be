@@ -18,6 +18,8 @@
    - [4.3 WorldBuilder](#43-worldbuilder)
    - [4.4 SelfReflector](#44-selfreflector)
    - [4.5 ReasoningEngine](#45-reasoningengine)
+   - [4.6 MemoryRetrievalService](#46-memoryretrievalservice)
+   - [4.7 BehaviorEmotionInferrer](#47-behavioremotioninferrer)
 5. [Services Layer](#5-services-layer)
    - [5.1 SpriteService](#51-spriteservice)
    - [5.2 ConversationService](#52-conversationservice)
@@ -502,6 +504,29 @@ public interface LlmReasoner {
     CompletableFuture<Insight> reflect(ReflectionPrompt prompt);
 }
 ```
+
+### 4.6 MemoryRetrievalService
+
+Context-aware memory retrieval for cognitive processes.
+
+**File**: `src/main/java/com/lingfeng/sprite/cognition/MemoryRetrievalService.java`
+
+**Capabilities**:
+- Situational context matching
+- Temporal decay weighting
+- Importance score calculation
+- Integration with DecisionEngine
+
+### 4.7 BehaviorEmotionInferrer
+
+Infers emotional state from behavioral signals.
+
+**File**: `src/main/java/com/lingfeng/sprite/cognition/BehaviorEmotionInferrer.java`
+
+**Capabilities**:
+- Activity pattern analysis
+- Emotional state inference from behavior
+- Integration with WorldBuilder
 
 ---
 
