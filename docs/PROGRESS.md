@@ -2,10 +2,10 @@
 
 ## 当前阶段
 
-**当前Sprint**: S5 - 传感器系统加固
+**当前Sprint**: S6 - 决策引擎增强
 **开始日期**: 2026-03-23
-**目标**: 加固传感器系统，添加健康检查和跨平台支持
-**状态**: S5-1/2/3完成，S5-4待开始
+**目标**: 多维度决策，置信度量化
+**状态**: 待开始
 
 ---
 
@@ -162,7 +162,7 @@
 | S5-1 | RealUserSensor Linux适配 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S5-2 | RealEnvironmentSensor增强 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 | S5-3 | 传感器健康检查 | ✅ done | - | 2026-03-23 | 2026-03-23 |
-| S5-4 | Mock数据清理 | todo | - | - | - |
+| S5-4 | Mock数据清理 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
 - S5-1:
@@ -185,6 +185,10 @@
   - 实现 `updateSensorHealth()` - 更新单个传感器健康状态
   - 实现 `triggerSensorAlert()` - 传感器告警触发
   - 在 `HealthDetails` 中包含传感器健康信息
+- S5-4:
+  - 增强 `Sprite.java` - 使用真实传感器替代基类传感器
+  - 添加RealPlatformSensor/RealUserSensor/RealEnvironmentSensor导入
+  - 更新架构注释反映真实传感器使用
 
 ---
 

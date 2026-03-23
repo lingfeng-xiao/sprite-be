@@ -29,7 +29,7 @@
 | S5-1 | RealUserSensor Linux适配 | ✅ done | Sprint-S5 |
 | S5-2 | RealEnvironmentSensor增强 | ✅ done | Sprint-S5 |
 | S5-3 | 传感器健康检查 | ✅ done | Sprint-S5 |
-| S5-4 | Mock数据清理 | todo | Sprint-S5 |
+| S5-4 | Mock数据清理 | ✅ done | Sprint-S5 |
 
 ### P2 - 优化功能 (Nice to Have)
 
@@ -475,7 +475,7 @@
 
 **所属阶段**: S5 - 传感器系统加固
 **优先级**: 技术债
-**状态**: todo
+**状态**: done
 
 **背景/目标**: 清理代码中的Mock数据，使用真实传感器替代
 
@@ -496,6 +496,10 @@
 
 | ID | 需求 | Sprint | 完成日期 |
 |----|------|--------|----------|
+| S5-1 | RealUserSensor Linux适配 | Sprint-S5 | 2026-03-23 |
+| S5-2 | RealEnvironmentSensor增强 | Sprint-S5 | 2026-03-23 |
+| S5-3 | 传感器健康检查 | Sprint-S5 | 2026-03-23 |
+| S5-4 | Mock数据清理 | Sprint-S5 | 2026-03-23 |
 | S6-A1 | 长期记忆检索机制 | Sprint-006 | 2026-03-23 |
 | S6-A2 | 情境感知记忆索引 | Sprint-006 | 2026-03-23 |
 | S6-A3 | 回忆触发行动 | Sprint-006 | 2026-03-23 |
