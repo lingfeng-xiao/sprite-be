@@ -25,6 +25,7 @@ public class WorldBuilder {
     private final List<BehaviorObservation> behaviorObservations = new ArrayList<>();
     private PerceptionSystem.PresenceStatus lastPresence = null;
     private int presenceStreak = 0;
+    private final BehaviorEmotionInferrer emotionInferrer = new BehaviorEmotionInferrer();
 
     /**
      * 从感知构建世界模型
@@ -62,43 +63,12 @@ public class WorldBuilder {
         PerceptionSystem.Perception perception,
         WorldModel.World world
     ) {
+        // 使用行为信号情感推断器进行更准确的推断
+        OwnerModel.EmotionalState inferredEmotion = emotionInferrer.infer(perception, world);
+
+        // 追踪存在状态变化
         PerceptionSystem.PresenceStatus currentPresence = perception.user() != null ?
             perception.user().presence() : null;
-
-        OwnerModel.Mood mood = OwnerModel.Mood.NEUTRAL;
-        if (currentPresence != null) {
-            switch (currentPresence) {
-                case ACTIVE: mood = OwnerModel.Mood.CALM; break;
-                case IDLE: mood = OwnerModel.Mood.NEUTRAL; break;
-                case AWAY: mood = OwnerModel.Mood.TIRED; break;
-                default: mood = OwnerModel.Mood.NEUTRAL;
-            }
-        }
-
-        OwnerModel.Mood contextMood = mood;
-        if (perception.environment() != null) {
-            switch (perception.environment().context()) {
-                case WORK: contextMood = OwnerModel.Mood.CALM; break;
-                case LEISURE: contextMood = OwnerModel.Mood.HAPPY; break;
-                case SLEEP: contextMood = OwnerModel.Mood.TIRED; break;
-                default: contextMood = mood;
-            }
-        }
-
-        OwnerModel.Mood systemMood = contextMood;
-        if (perception.platform() != null) {
-            if (perception.platform().battery() != null &&
-                perception.platform().battery().chargePercent() < 20) {
-                systemMood = OwnerModel.Mood.ANXIOUS;
-            } else if (perception.platform().memory() != null &&
-                perception.platform().memory().usedPercent() > 80) {
-                systemMood = OwnerModel.Mood.CONFUSED;
-            } else if (perception.platform().network() != null &&
-                !perception.platform().network().isConnected()) {
-                systemMood = OwnerModel.Mood.FRUSTRATED;
-            }
-        }
-
         if (currentPresence == lastPresence) {
             presenceStreak++;
         } else {
@@ -106,15 +76,31 @@ public class WorldBuilder {
         }
         lastPresence = currentPresence;
 
-        OwnerModel.Mood finalMood = presenceStreak > 3 ? systemMood : mood;
+        // 如果存在状态稳定超过3次感知，采用系统状态推断的情绪
+        OwnerModel.Mood finalMood = inferredEmotion.currentMood();
+        float intensity = inferredEmotion.intensity();
 
-        float intensity = 0.3f;
-        switch (finalMood) {
-            case ANXIOUS: intensity = 0.7f; break;
-            case FRUSTRATED: intensity = 0.6f; break;
-            case CONFUSED: intensity = 0.5f; break;
-            case TIRED: intensity = 0.4f; break;
-            default: intensity = 0.3f;
+        // 系统状态检查（电池、网络等）作为补充
+        if (perception.platform() != null) {
+            if (perception.platform().battery() != null &&
+                perception.platform().battery().chargePercent() < 20 &&
+                !perception.platform().battery().isCharging()) {
+                // 电量低且不在充电，增加焦虑
+                if (intensity < 0.7f) {
+                    finalMood = OwnerModel.Mood.ANXIOUS;
+                    intensity = 0.7f;
+                }
+            }
+            if (perception.platform().memory() != null &&
+                perception.platform().memory().usedPercent() > 80) {
+                finalMood = OwnerModel.Mood.CONFUSED;
+                intensity = Math.max(intensity, 0.5f);
+            }
+            if (perception.platform().network() != null &&
+                !perception.platform().network().isConnected()) {
+                finalMood = OwnerModel.Mood.FRUSTRATED;
+                intensity = Math.max(intensity, 0.6f);
+            }
         }
 
         return world.updateEmotionalState(finalMood, intensity, perception.generateFeelings());
