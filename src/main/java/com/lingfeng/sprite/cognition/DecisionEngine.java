@@ -38,19 +38,21 @@ public class DecisionEngine {
         // 因果推理 → LogAction（记录分析）
         INTENT_ACTION_MAP.put(ReasoningEngine.ReasoningType.CAUSAL, "LogAction");
 
-        // 预测 → RememberAction（记住预测上下文）
-        INTENT_ACTION_MAP.put(ReasoningEngine.ReasoningType.PREDICTION, "RememberAction");
+        // 预测 → Remember（记住预测上下文）
+        INTENT_ACTION_MAP.put(ReasoningEngine.ReasoningType.PREDICTION, "Remember");
 
         // 反思 → LogAction（记录反思）
         // INTENT_ACTION_MAP.put(ReasoningEngine.ReasoningType.REFLECTION, "LogAction");
 
         // 动作优先级（数字越大优先级越高）
         ACTION_PRIORITY.put("NotifyAction", 80);
-        ACTION_PRIORITY.put("RememberAction", 60);
+        ACTION_PRIORITY.put("Remember", 60);
         ACTION_PRIORITY.put("LogAction", 40);
         ACTION_PRIORITY.put("Calculator", 70);
         ACTION_PRIORITY.put("SearchFiles", 65);
         ACTION_PRIORITY.put("RecallMemory", 55);
+        ACTION_PRIORITY.put("Notify", 80);
+        ACTION_PRIORITY.put("Search", 65);
     }
 
     private final WorldModel.World worldModel;
