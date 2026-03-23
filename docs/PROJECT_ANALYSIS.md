@@ -71,6 +71,10 @@
 | HotReloadConfigService | ✅ S11 | 配置热更新 |
 | PerformanceMonitorService | ✅ S11 | 性能监控 |
 | ApiDocService | ✅ S11 | API文档生成 |
+| CognitionDashboardService | ✅ S10 | 认知状态可视化 |
+| MemoryVisualizationService | ✅ S10 | 记忆可视化 |
+| EvolutionDashboardService | ✅ S10 | 进化历史Dashboard |
+| OwnerEmotionDashboardService | ✅ S10 | 主人情绪历史Dashboard |
 
 ### 3.6 动作插件 (Action Plugins)
 - LogAction ✅
@@ -79,6 +83,9 @@
 - SearchFilesAction ✅
 - RememberAction ✅
 - RecallMemoryAction ✅
+- EmailAction ✅
+- CalendarAction ✅
+- KnowledgeBaseAction ✅
 
 ## 4. 当前架构
 
@@ -100,7 +107,10 @@ Sprite (核心协调器)
 └── Sensors
     ├── RealPlatformSensor (OSHI)
     ├── RealUserSensor (JNA)
-    └── RealEnvironmentSensor (时间)
+    ├── RealEnvironmentSensor (时间)
+    ├── AudioSensor (S9)
+    ├── LocationSensor (S9)
+    └── DeviceStateSensor (S9)
 ```
 
 ## 5. 当前存在的问题与缺口
