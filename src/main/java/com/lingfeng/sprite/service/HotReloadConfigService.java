@@ -15,12 +15,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * S11-3: 配置热更新服务
+ * S11-3: 配置热更新服务 - S13-3: 添加Spring服务注解
  *
  * 支持运行时配置动态更新：
  * - JSON/YAML配置文件监听
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  * - 回调机制通知配置变更
  * - 配置版本管理
  */
+@Service
 public class HotReloadConfigService {
 
     private static final Logger logger = LoggerFactory.getLogger(HotReloadConfigService.class);
