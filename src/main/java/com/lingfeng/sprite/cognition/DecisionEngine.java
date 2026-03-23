@@ -1,5 +1,8 @@
 package com.lingfeng.sprite.cognition;
 
+import com.lingfeng.sprite.OwnerModel;
+import com.lingfeng.sprite.PerceptionSystem;
+import com.lingfeng.sprite.SelfModel;
 import com.lingfeng.sprite.WorldModel;
 
 import java.util.*;
