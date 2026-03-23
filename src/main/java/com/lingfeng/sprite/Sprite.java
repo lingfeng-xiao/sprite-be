@@ -4,6 +4,9 @@ import com.lingfeng.sprite.cognition.CognitionController;
 import com.lingfeng.sprite.cognition.ReasoningEngine;
 import com.lingfeng.sprite.llm.MinMaxConfig;
 import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
+import com.lingfeng.sprite.sensor.RealEnvironmentSensor;
+import com.lingfeng.sprite.sensor.RealPlatformSensor;
+import com.lingfeng.sprite.sensor.RealUserSensor;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -20,7 +23,7 @@ import java.util.UUID;
  * │
  * │    ┌─────────────────────────────────────────────────────────────┐       │
  * │    │                    感知层 (Perception)                       │       │
- * │    │   PlatformSensor ── UserSensor ── EnvironmentSensor       │       │
+ * │    │   RealPlatformSensor ── RealUserSensor ── RealEnvironmentSensor       │       │
  * │    └─────────────────────────────────────────────────────────────┘       │
  * │                              │                                          │
  * │                              ▼                                          │
@@ -130,9 +133,9 @@ public class Sprite {
 
         PerceptionSystem.System perceptionSystem = new PerceptionSystem.System(
             java.util.List.of(
-                new PerceptionSystem.PlatformSensor("device-" + platform.name().toLowerCase(), deviceType),
-                new PerceptionSystem.EnvironmentSensor(),
-                new PerceptionSystem.UserSensor()
+                new RealPlatformSensor("device-" + platform.name().toLowerCase(), deviceType),
+                new RealUserSensor(),
+                new RealEnvironmentSensor()
             )
         );
 
