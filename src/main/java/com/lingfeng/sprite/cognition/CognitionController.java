@@ -101,7 +101,7 @@ public class CognitionController {
                 .toList();
 
             // 7a. 检索相关长期记忆
-            WorldModel.Context worldContext = worldModel.context();
+            WorldModel.Context worldContext = worldModel.currentContext();
             OwnerModel.Mood ownerMood = worldModel.owner().emotionalState() != null ?
                 worldModel.owner().emotionalState().currentMood() : null;
             MemoryRetrievalService.RetrievalContext retrievalContext =

@@ -21,6 +21,8 @@ import com.lingfeng.sprite.PerceptionSystem.PresenceStatus;
 import com.lingfeng.sprite.PerceptionSystem.UserPerception;
 import com.lingfeng.sprite.WorldModel;
 import com.lingfeng.sprite.cognition.CognitionController;
+import com.lingfeng.sprite.llm.ChatModels;
+import com.lingfeng.sprite.llm.MinMaxLlmReasoner;
 
 /**
  * 主动对话服务
@@ -54,6 +56,7 @@ public class ProactiveService {
 
     private final UnifiedContextService unifiedContextService;
     private final ConversationService conversationService;
+    private final MinMaxLlmReasoner llmReasoner;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // 状态跟踪
@@ -69,10 +72,12 @@ public class ProactiveService {
 
     public ProactiveService(
             @Autowired UnifiedContextService unifiedContextService,
-            @Autowired ConversationService conversationService
+            @Autowired ConversationService conversationService,
+            @Autowired(required = false) MinMaxLlmReasoner llmReasoner
     ) {
         this.unifiedContextService = unifiedContextService;
         this.conversationService = conversationService;
+        this.llmReasoner = llmReasoner;
 
         // 启动主动检查
         startProactiveMonitoring();
@@ -209,13 +214,17 @@ public class ProactiveService {
                 return;
             }
 
-            // 基于当前上下文生成建议
+            // 基于当前上下文生成建议（使用LLM生成个性化内容）
             WorldModel.Context context = world.currentContext();
             if (context != null && shouldProactivelyContact()) {
-                String suggestion = generateContextualSuggestion(context);
-                if (suggestion != null) {
-                    triggerContextualSuggestion(suggestion);
-                }
+                // 构建上下文描述
+                String contextDesc = String.format("活动=%s, 注意力=%.0f%%, 紧迫度=%.0f%%, 位置=%s",
+                    context.activity(),
+                    context.attention() * 100,
+                    context.urgency() * 100,
+                    context.location() != null ? context.location() : "未知"
+                );
+                triggerContextualSuggestion(contextDesc);
             }
         } catch (Exception e) {
             logger.debug("Error checking contextual suggestions: {}", e.getMessage());
@@ -320,26 +329,28 @@ public class ProactiveService {
      * 触发空闲主动消息
      */
     private void triggerIdleProactiveMessage(long idleMinutes) {
-        lastProactiveTime = Instant.now();
-
-        String message;
+        String contextInfo;
         if (idleMinutes >= 60) {
-            message = String.format("主人已经休息 %d 小时了，工作不要太累哦。有需要随时叫我。", idleMinutes / 60);
+            contextInfo = idleMinutes / 60 + " 小时";
         } else {
-            message = String.format("主人已经空闲 %d 分钟了，有什么我可以帮忙的吗？", idleMinutes);
+            contextInfo = idleMinutes + " 分钟";
         }
 
-        logger.info("Proactive message (idle {} min): {}", idleMinutes, message);
-        sendProactiveMessage(message);
+        String fallbackMessage;
+        if (idleMinutes >= 60) {
+            fallbackMessage = String.format("主人已经休息 %d 小时了，工作不要太累哦。有需要随时叫我。", idleMinutes / 60);
+        } else {
+            fallbackMessage = String.format("主人已经空闲 %d 分钟了，有什么我可以帮忙的吗？", idleMinutes);
+        }
+
+        generateAndSendProactiveMessage("idle", contextInfo, fallbackMessage);
     }
 
     /**
      * 触发情绪主动消息
      */
     private void triggerMoodProactiveMessage(String mood) {
-        lastProactiveTime = Instant.now();
-
-        String message = switch (mood) {
+        String fallbackMessage = switch (mood) {
             case "焦虑" -> "注意到主人好像有点焦虑，需要我帮忙分析一下问题吗？";
             case "疲惫" -> "主人看起来有点疲惫，要不要休息一下？";
             case "开心" -> "主人心情不错呀！有什么好事想分享吗？";
@@ -348,18 +359,29 @@ public class ProactiveService {
             default -> "主人，当前状态还好吗？需要我做什么吗？";
         };
 
-        logger.info("Proactive message (mood={}): {}", mood, message);
-        sendProactiveMessage(message);
+        generateAndSendProactiveMessage("mood", mood, fallbackMessage);
     }
 
     /**
      * 触发定时问候消息
      */
     private void triggerScheduledGreeting(String greetingType) {
-        lastProactiveTime = Instant.now();
         lastGreetingTime = Instant.now();
 
-        String message = switch (greetingType) {
+        String contextInfo = switch (greetingType) {
+            case "morning" -> {
+                LocalDateTime now = LocalDateTime.now(TIMEZONE);
+                yield "早上问候（" + now.getHour() + "点）";
+            }
+            case "evening" -> {
+                LocalDateTime now = LocalDateTime.now(TIMEZONE);
+                yield "傍晚/晚间问候（" + now.getHour() + "点）";
+            }
+            case "night" -> "夜间问候";
+            default -> "定时问候";
+        };
+
+        String fallbackMessage = switch (greetingType) {
             case "morning" -> {
                 LocalDateTime now = LocalDateTime.now(TIMEZONE);
                 int hour = now.getHour();
@@ -382,18 +404,157 @@ public class ProactiveService {
             default -> "主人，您好！有什么我可以帮忙的吗？";
         };
 
-        logger.info("Proactive greeting ({}): {}", greetingType, message);
-        sendProactiveMessage(message);
+        generateAndSendProactiveMessage("greeting", contextInfo, fallbackMessage);
     }
 
     /**
      * 触发上下文主动建议
      */
-    private void triggerContextualSuggestion(String suggestion) {
+    private void triggerContextualSuggestion(String contextDesc) {
+        String fallbackSuggestion = generateContextualSuggestionFallback(contextDesc);
+        generateAndSendProactiveMessage("contextual", contextDesc, fallbackSuggestion);
+    }
+
+    /**
+     * 生成上下文建议的后备实现（LLM不可用时使用）
+     */
+    private String generateContextualSuggestionFallback(String contextDesc) {
+        WorldModel.World world = unifiedContextService.getWorldModel();
+        if (world == null) {
+            return null;
+        }
+
+        WorldModel.Context context = world.currentContext();
+        if (context == null) {
+            return null;
+        }
+
+        LocalDateTime now = LocalDateTime.now(TIMEZONE);
+        int hour = now.getHour();
+
+        // 工作时间建议
+        if (hour >= 9 && hour < 12 && context.activity() == WorldModel.Activity.WORK) {
+            return "上午工作效率黄金期，适合处理复杂任务。";
+        } else if (hour >= 14 && hour < 17 && context.activity() == WorldModel.Activity.WORK) {
+            return "下午容易疲劳，建议适时休息一下。";
+        }
+
+        // 基于注意力和紧迫度
+        if (context.attention() < 0.5f && context.urgency() < 0.3f) {
+            return "看起来有点累，要不要休息一下再来处理任务？";
+        } else if (context.urgency() > 0.8f && context.attention() < 0.3f) {
+            return "任务比较紧急，但状态不太好的话，可以先简单处理一下，剩下的交给我。";
+        }
+
+        // 基于位置上下文（如果有）
+        if (context.location() != null && !context.location().isEmpty()) {
+            if (context.location().contains("会议室") && context.attention() > 0.7f) {
+                return "会议中，我会保持安静。有需要随时叫我。";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 使用LLM生成个性化的主动消息
+     *
+     * @param triggerType 触发类型：idle, mood, greeting, contextual
+     * @param contextInfo 上下文信息
+     * @param fallbackMessage 后备消息（当LLM不可用时使用）
+     */
+    private void generateAndSendProactiveMessage(String triggerType, String contextInfo, String fallbackMessage) {
         lastProactiveTime = Instant.now();
 
-        logger.info("Proactive suggestion: {}", suggestion);
-        sendProactiveMessage(suggestion);
+        if (llmReasoner != null) {
+            try {
+                // 构建LLM上下文
+                ChatModels.LlmContext llmContext = new ChatModels.LlmContext(
+                    unifiedContextService.buildSelfSummary(),
+                    unifiedContextService.buildOwnerSummary(),
+                    unifiedContextService.buildCurrentSituation(),
+                    unifiedContextService.getChatHistory(),
+                    "主动交互",
+                    unifiedContextService.buildMemoryHighlights()
+                );
+
+                // 构建生成提示
+                String prompt = buildProactivePrompt(triggerType, contextInfo);
+
+                // 同步调用LLM生成
+                ChatModels.LlmThought thought = llmReasoner.think(llmContext, prompt).get();
+
+                String generatedMessage = thought != null && thought.response() != null
+                    ? thought.response()
+                    : fallbackMessage;
+
+                logger.info("LLM generated proactive message ({}): {}", triggerType, generatedMessage);
+                sendProactiveMessage(generatedMessage);
+            } catch (Exception e) {
+                logger.warn("LLM generation failed, using fallback: {}", e.getMessage());
+                sendProactiveMessage(fallbackMessage);
+            }
+        } else {
+            // LLM不可用，使用后备消息
+            sendProactiveMessage(fallbackMessage);
+        }
+    }
+
+    /**
+     * 构建主动消息生成的提示
+     */
+    private String buildProactivePrompt(String triggerType, String contextInfo) {
+        return switch (triggerType) {
+            case "idle" -> String.format(
+                "作为数字生命小艺，请生成一条个性化的主动问候消息。\n" +
+                "触发原因：主人已经空闲%s\n" +
+                "当前情境：%s\n" +
+                "要求：\n" +
+                "1. 语言自然、亲切，符合小艺的性格（臭美、直接、干净利落）\n" +
+                "2. 体现对主人的关心\n" +
+                "3. 询问是否需要帮助\n" +
+                "4. 30字以内，简短有力\n" +
+                "5. 不要使用表情符号",
+                contextInfo, unifiedContextService.buildCurrentSituation()
+            );
+            case "mood" -> String.format(
+                "作为数字生命小艺，请生成一条关心主人的消息。\n" +
+                "触发原因：检测到主人情绪变化 - %s\n" +
+                "当前情境：%s\n" +
+                "要求：\n" +
+                "1. 语言温暖但不过分\n" +
+                "2. 体现对主人情绪的理解\n" +
+                "3. 主动提供帮助\n" +
+                "4. 30字以内\n" +
+                "5. 不要使用表情符号",
+                contextInfo, unifiedContextService.buildCurrentSituation()
+            );
+            case "greeting" -> String.format(
+                "作为数字生命小艺，请生成一条定时问候消息。\n" +
+                "触发原因：%s\n" +
+                "当前情境：%s\n" +
+                "要求：\n" +
+                "1. 语言符合小艺性格\n" +
+                "2. 适度的关心和问候\n" +
+                "3. 引导互动\n" +
+                "4. 30字以内\n" +
+                "5. 不要使用表情符号",
+                contextInfo, unifiedContextService.buildCurrentSituation()
+            );
+            case "contextual" -> String.format(
+                "作为数字生命小艺，请基于当前上下文生成一条主动建议。\n" +
+                "触发原因：%s\n" +
+                "当前情境：%s\n" +
+                "要求：\n" +
+                "1. 语言直接、有帮助\n" +
+                "2. 体现预判主人需求的能力\n" +
+                "3. 建议具体、可操作\n" +
+                "4. 30字以内\n" +
+                "5. 不要使用表情符号",
+                contextInfo, unifiedContextService.buildCurrentSituation()
+            );
+            default -> "主人，您好！有什么我可以帮忙的吗？";
+        };
     }
 
     /**

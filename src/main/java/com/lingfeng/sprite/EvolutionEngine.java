@@ -10,6 +10,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 进化引擎 - 数字生命的自我改进系统
  *
@@ -150,6 +153,38 @@ public final class EvolutionEngine {
 
     public enum Impact { HIGH, MEDIUM, LOW }
 
+    // ==================== 能力性能追踪 ====================
+
+    /**
+     * 能力性能记录
+     */
+    public record CapabilityPerformance(
+        String capabilityName,
+        int successCount,
+        int failureCount,
+        float successRate,
+        Instant lastUpdated
+    ) {
+        public float calculateConfidence() {
+            int total = successCount + failureCount;
+            if (total == 0) return 0.3f;
+            // 置信度基于样本量和成功率
+            float baseConfidence = successRate;
+            float sampleBonus = Math.min(total * 0.02f, 0.3f); // 最多+0.3
+            return Math.min(baseConfidence + sampleBonus, 0.95f);
+        }
+
+        public SelfModel.CapabilityLevel suggestedLevel() {
+            if (successCount + failureCount < 3) {
+                return SelfModel.CapabilityLevel.BASIC; // 样本不足
+            }
+            if (successRate >= 0.8f) return SelfModel.CapabilityLevel.MASTER;
+            if (successRate >= 0.6f) return SelfModel.CapabilityLevel.ADVANCED;
+            if (successRate >= 0.4f) return SelfModel.CapabilityLevel.BASIC;
+            return SelfModel.CapabilityLevel.NONE;
+        }
+    }
+
     // ==================== 学习循环 ====================
 
     /**
@@ -168,6 +203,15 @@ public final class EvolutionEngine {
             outcomes = outcomes != null ? List.copyOf(outcomes) : List.of();
             Objects.requireNonNull(context);
             patterns = patterns != null ? List.copyOf(patterns) : List.of();
+        }
+
+        /**
+         * 获取成功率
+         */
+        public float successRate() {
+            if (outcomes.isEmpty()) return 0.5f;
+            long success = outcomes.stream().filter(Feedback.OutcomeFeedback::success).count();
+            return (float) success / outcomes.size();
         }
     }
 
@@ -260,6 +304,27 @@ public final class EvolutionEngine {
         private final int minObservationsForInsight = 3;
         private final float insightDecayFactor = 0.95f;
 
+        // 能力性能追踪
+        private final java.util.Map<String, CapabilityPerformance> capabilityPerformance = new java.util.concurrent.ConcurrentHashMap<>();
+
+        // 动作类型 → 能力名称 的映射
+        private static final java.util.Map<String, String> ACTION_CAPABILITY_MAP;
+        static {
+            java.util.Map<String, String> temp = new java.util.HashMap<>();
+            temp.put("SearchFiles", "信息搜索");
+            temp.put("Search", "信息搜索");
+            temp.put("Calculator", "逻辑推理");
+            temp.put("NotifyAction", "主动沟通");
+            temp.put("Notify", "主动沟通");
+            temp.put("Remember", "记忆管理");
+            temp.put("LogAction", "日志记录");
+            temp.put("BrowserAction", "信息获取");
+            temp.put("FileAction", "文件管理");
+            temp.put("ScheduleAction", "日程管理");
+            temp.put("AppLaunchAction", "应用控制");
+            ACTION_CAPABILITY_MAP = java.util.Collections.unmodifiableMap(temp);
+        }
+
         /**
          * 记录观察
          */
@@ -277,7 +342,66 @@ public final class EvolutionEngine {
                 patterns
             );
             observations.add(observation);
+
+            // 更新能力性能追踪
+            for (Feedback.OutcomeFeedback outcome : observation.outcomes()) {
+                updateCapabilityPerformance(outcome.actionType(), outcome.success());
+            }
+
             return observation;
+        }
+
+        /**
+         * 更新能力性能追踪
+         */
+        public void updateCapabilityPerformance(String actionType, boolean success) {
+            String capabilityName = ACTION_CAPABILITY_MAP.getOrDefault(actionType, "通用能力");
+            CapabilityPerformance current = capabilityPerformance.get(capabilityName);
+
+            if (current == null) {
+                current = new CapabilityPerformance(
+                    capabilityName,
+                    success ? 1 : 0,
+                    success ? 0 : 1,
+                    success ? 1.0f : 0.0f,
+                    Instant.now()
+                );
+            } else {
+                int newSuccess = current.successCount() + (success ? 1 : 0);
+                int newFailure = current.failureCount() + (success ? 0 : 1);
+                float newRate = (float) newSuccess / (newSuccess + newFailure);
+                current = new CapabilityPerformance(
+                    capabilityName,
+                    newSuccess,
+                    newFailure,
+                    newRate,
+                    Instant.now()
+                );
+            }
+            capabilityPerformance.put(capabilityName, current);
+        }
+
+        /**
+         * 获取能力性能
+         */
+        public CapabilityPerformance getCapabilityPerformance(String capabilityName) {
+            return capabilityPerformance.get(capabilityName);
+        }
+
+        /**
+         * 获取所有能力性能
+         */
+        public java.util.Collection<CapabilityPerformance> getAllCapabilityPerformance() {
+            return capabilityPerformance.values();
+        }
+
+        /**
+         * 根据成功率获取建议的能力等级
+         */
+        public SelfModel.CapabilityLevel suggestCapabilityLevel(String capabilityName) {
+            CapabilityPerformance perf = capabilityPerformance.get(capabilityName);
+            if (perf == null) return SelfModel.CapabilityLevel.BASIC;
+            return perf.suggestedLevel();
         }
 
         /**
@@ -636,6 +760,48 @@ public final class EvolutionEngine {
             return updated;
         }
 
+        /**
+         * 添加新能力
+         */
+        public SelfModel.Self addCapability(
+            SelfModel.Self self,
+            String capabilityName,
+            SelfModel.CapabilityLevel level
+        ) {
+            if (!canModify(ModificationType.CAPABILITY_LEVEL)) return null;
+
+            // 检查能力是否已存在
+            boolean exists = self.capabilities().stream()
+                .anyMatch(c -> c.name().equals(capabilityName));
+            if (exists) {
+                return modifyCapability(self, capabilityName, level);
+            }
+
+            // 添加新能力
+            List<SelfModel.Capability> updatedCapabilities = new ArrayList<>(self.capabilities());
+            updatedCapabilities.add(new SelfModel.Capability(capabilityName, level, 0.5f, Instant.now()));
+
+            SelfModel.Self updated = new SelfModel.Self(
+                self.identity(),
+                self.personality(),
+                List.copyOf(updatedCapabilities),
+                self.avatars(),
+                self.metacognition(),
+                self.growthHistory(),
+                self.evolutionLevel(),
+                self.evolutionCount() + 1
+            );
+            recordModification(new Modification(
+                Instant.now(),
+                ModificationType.CAPABILITY_LEVEL,
+                capabilityName,
+                "none",
+                level.name(),
+                true
+            ));
+            return updated;
+        }
+
         private boolean canModify(ModificationType type) {
             return bounds.allowedModifications().contains(type);
         }
@@ -770,6 +936,7 @@ public final class EvolutionEngine {
      * 进化引擎
      */
     public static class Engine {
+        private static final Logger logger = LoggerFactory.getLogger(Engine.class);
         private final LearningLoop learningLoop;
         private final FeedbackCollector feedbackCollector;
         private final SelfModifier selfModifier;
@@ -821,12 +988,28 @@ public final class EvolutionEngine {
                 switch (insight.type()) {
                     case SKILL_GAP_IDENTIFIED -> {
                         String skillGap = extractSkillGap(insight);
+                        // 证据-based能力提升：根据追踪的成功率确定合适的能力等级
+                        SelfModel.CapabilityLevel suggestedLevel = learningLoop.suggestCapabilityLevel(skillGap);
                         SelfModel.Self modified = selfModifier.modifyCapability(
                             updatedSelf,
                             skillGap,
-                            SelfModel.CapabilityLevel.ADVANCED
+                            suggestedLevel
                         );
-                        if (modified != null) updatedSelf = modified;
+                        if (modified != null) {
+                            updatedSelf = modified;
+                            logger.info("Capability '{}' upgraded to {} based on evidence", skillGap, suggestedLevel);
+                        } else {
+                            // 能力不存在，尝试添加
+                            modified = selfModifier.addCapability(
+                                updatedSelf,
+                                skillGap,
+                                suggestedLevel
+                            );
+                            if (modified != null) {
+                                updatedSelf = modified;
+                                logger.info("Capability '{}' added at level {} based on evidence", skillGap, suggestedLevel);
+                            }
+                        }
                         break;
                     }
                     case BELIEF_UPDATED -> {
@@ -845,8 +1028,13 @@ public final class EvolutionEngine {
                 }
             }
 
-            if (evolutionCount > evolutionLevel * 10) {
+            // 进化等级提升条件：需要行为改变证据，不仅仅是计数
+            boolean hasBehaviorChangeEvidence = appliedChange != null && Boolean.TRUE.equals(appliedChange.success());
+            boolean hasSufficientObservations = learningLoop.getStats().totalObservations() >= evolutionLevel * 3;
+            if (evolutionCount > evolutionLevel * 10 && (hasBehaviorChangeEvidence || hasSufficientObservations)) {
                 evolutionLevel++;
+                logger.info("Evolution level increased to {} (behaviorChange={}, observations={})",
+                    evolutionLevel, hasBehaviorChangeEvidence, learningLoop.getStats().totalObservations());
             }
 
             evolutionCount++;

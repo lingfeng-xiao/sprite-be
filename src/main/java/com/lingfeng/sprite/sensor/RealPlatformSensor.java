@@ -91,10 +91,35 @@ public class RealPlatformSensor extends PlatformSensor {
                 // Ignore
             }
 
-            // Network - simplified, just indicate connected
+            // Network - enhanced with latency measurement
             var networkIFs = hardware.getNetworkIFs();
             boolean isConnected = !networkIFs.isEmpty();
             String adapterName = networkIFs.isEmpty() ? null : networkIFs.get(0).getName();
+            Long latencyMs = null;
+            try {
+                // Measure latency to Google DNS
+                long start = System.currentTimeMillis();
+                InetAddress.getByName("8.8.8.8").isReachable(1000);
+                latencyMs = System.currentTimeMillis() - start;
+            } catch (Exception e) {
+                // Could not measure latency
+            }
+
+            // Battery - use OSHI PowerSources if available
+            boolean isCharging = false;
+            int batteryPercent = 100;
+            try {
+                var powerSources = hardware.getPowerSources();
+                if (powerSources != null && !powerSources.isEmpty()) {
+                    var ps = powerSources.get(0);
+                    isCharging = ps.isCharging();
+                    batteryPercent = (int) Math.round(ps.getRemainingCapacityPercent() * 100);
+                    // Clamp to 0-100
+                    batteryPercent = Math.max(0, Math.min(100, batteryPercent));
+                }
+            } catch (Exception e) {
+                // Power sources not available, use defaults
+            }
 
             return new Perception(
                     java.time.Instant.now(),
@@ -112,9 +137,9 @@ public class RealPlatformSensor extends PlatformSensor {
                                     0,
                                     0f
                             ),
-                            new BatteryStatus(false, 100),
+                            new BatteryStatus(isCharging, batteryPercent),
                             new CpuStatus(cpuLoad, cpuCount),
-                            new NetworkStatus(isConnected, adapterName, null, null, null, null),
+                            new NetworkStatus(isConnected, adapterName, null, null, latencyMs, null),
                             null,
                             null
                     ),

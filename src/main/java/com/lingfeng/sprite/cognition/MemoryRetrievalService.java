@@ -264,7 +264,7 @@ public class MemoryRetrievalService {
      */
     private String formatProcedural(ProceduralEntry entry) {
         return "【技能." + entry.skillName() + "】" +
-               "熟练度: " + entry.skillLevel() +
+               "熟练度: " + entry.level() +
                " (执行" + entry.timesPerformed() + "次, 成功率" +
                String.format("%.0f%%", entry.successRate() * 100) + ")";
     }
