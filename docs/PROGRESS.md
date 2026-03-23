@@ -4,7 +4,7 @@
 
 **当前Sprint**: S2 - 主人反馈学习
 **开始日期**: 2026-03-23
-**目标**: 追踪主人对主动消息的响应
+**目标**: 追踪主人对主动消息的响应，学习交互偏好
 **状态**: 进行中
 
 ---
@@ -19,14 +19,24 @@
 | ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
 |----|------|------|--------|----------|----------|
 | S2-1 | 主人响应追踪 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+| S2-2 | 交互偏好学习 | ✅ done | - | 2026-03-23 | 2026-03-23 |
 
 ### 完成内容
-- 新增 `FeedbackTrackerService.java` - 主人响应追踪服务
-- 新增 `ProactiveFeedback` 记录到 `OwnerModel.java`
-- 新增 `PROACTIVE_REPLY`, `PROACTIVE_IGNORE`, `PROACTIVE_REJECT` 交互类型
-- 增强 `ProactiveService.java` - 记录发送的主动消息
-- 增强 `ConversationService.java` - 通知反馈追踪器有主人活动
-- 增强 `SpriteController.java` - 添加 `/api/sprite/feedback` 端点
+- S2-1:
+  - 新增 `FeedbackTrackerService.java` - 主人响应追踪服务
+  - 新增 `ProactiveFeedback` 记录到 `OwnerModel.java`
+  - 新增 `PROACTIVE_REPLY`, `PROACTIVE_IGNORE`, `PROACTIVE_REJECT` 交互类型
+  - 增强 `ProactiveService.java` - 记录发送的主动消息
+  - 增强 `ConversationService.java` - 通知反馈追踪器有主人活动
+  - 增强 `SpriteController.java` - 添加 `/api/sprite/feedback` 端点
+- S2-2:
+  - 新增 `InteractionPreferenceLearningService.java` - 交互偏好学习服务
+  - 推断主人对话风格（简短/详细/中性）
+  - 推断最佳联系时间（小时/星期）
+  - 计算不同触发类型的响应率
+  - 增强 `ProactiveService.java` - 根据偏好调整消息策略
+  - 增强 `UnifiedContextService.java` - 添加 `getWorldModelOptional()` 方法
+  - 增强 `SpriteController.java` - 添加 `/api/sprite/preferences` 端点
 
 ---
 

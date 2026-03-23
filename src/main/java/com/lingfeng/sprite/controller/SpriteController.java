@@ -13,6 +13,7 @@ import com.lingfeng.sprite.MemorySystem;
 import com.lingfeng.sprite.Sprite;
 import com.lingfeng.sprite.service.FeedbackTrackerService;
 import com.lingfeng.sprite.service.HealthMonitorService;
+import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
 import com.lingfeng.sprite.service.SpriteService;
 
 /**
@@ -27,15 +28,18 @@ public class SpriteController {
     private final SpriteService spriteService;
     private final HealthMonitorService healthMonitorService;
     private final FeedbackTrackerService feedbackTrackerService;
+    private final InteractionPreferenceLearningService preferenceLearningService;
 
     public SpriteController(
             SpriteService spriteService,
             HealthMonitorService healthMonitorService,
-            FeedbackTrackerService feedbackTrackerService
+            FeedbackTrackerService feedbackTrackerService,
+            InteractionPreferenceLearningService preferenceLearningService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
         this.feedbackTrackerService = feedbackTrackerService;
+        this.preferenceLearningService = preferenceLearningService;
     }
 
     /**
@@ -114,6 +118,16 @@ public class SpriteController {
     public ResponseEntity<FeedbackTrackerService.FeedbackStats> getFeedbackStats() {
         FeedbackTrackerService.FeedbackStats stats = feedbackTrackerService.getStats();
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * GET /api/sprite/preferences - 获取主人交互偏好
+     */
+    @GetMapping("/preferences")
+    public ResponseEntity<InteractionPreferenceLearningService.InteractionPreferences> getPreferences() {
+        InteractionPreferenceLearningService.InteractionPreferences prefs =
+                preferenceLearningService.getPreferences();
+        return ResponseEntity.ok(prefs);
     }
 
     /**

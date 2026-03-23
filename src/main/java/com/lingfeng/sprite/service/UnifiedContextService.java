@@ -2,6 +2,7 @@ package com.lingfeng.sprite.service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -99,6 +100,13 @@ public class UnifiedContextService {
      */
     public WorldModel.World getWorldModel() {
         return lastWorldModel;
+    }
+
+    /**
+     * 获取世界模型（Optional形式）
+     */
+    public Optional<WorldModel.World> getWorldModelOptional() {
+        return Optional.ofNullable(lastWorldModel);
     }
 
     /**

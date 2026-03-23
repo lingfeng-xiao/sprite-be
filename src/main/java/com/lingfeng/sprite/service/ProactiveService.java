@@ -58,6 +58,7 @@ public class ProactiveService {
     private final ConversationService conversationService;
     private final MinMaxLlmReasoner llmReasoner;
     private final FeedbackTrackerService feedbackTrackerService;
+    private final InteractionPreferenceLearningService preferenceLearningService;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // 状态跟踪
@@ -75,12 +76,14 @@ public class ProactiveService {
             @Autowired UnifiedContextService unifiedContextService,
             @Autowired ConversationService conversationService,
             @Autowired(required = false) MinMaxLlmReasoner llmReasoner,
-            @Autowired FeedbackTrackerService feedbackTrackerService
+            @Autowired FeedbackTrackerService feedbackTrackerService,
+            @Autowired InteractionPreferenceLearningService preferenceLearningService
     ) {
         this.unifiedContextService = unifiedContextService;
         this.conversationService = conversationService;
         this.llmReasoner = llmReasoner;
         this.feedbackTrackerService = feedbackTrackerService;
+        this.preferenceLearningService = preferenceLearningService;
 
         // 启动主动检查
         startProactiveMonitoring();
@@ -325,6 +328,16 @@ public class ProactiveService {
             }
         }
 
+        // 检查当前时间是否是联系的好时机
+        LocalDateTime now = LocalDateTime.now(TIMEZONE);
+        int currentHour = now.getHour();
+        float hourResponseProb = preferenceLearningService.getHourlyResponseProbability(currentHour);
+        if (hourResponseProb < 0.3f) {
+            // 这个时间点主人响应概率很低，暂不打扰
+            logger.debug("Skipping proactive contact - low response probability at hour {}", currentHour);
+            return false;
+        }
+
         return true;
     }
 
@@ -507,54 +520,68 @@ public class ProactiveService {
      * 构建主动消息生成的提示
      */
     private String buildProactivePrompt(String triggerType, String contextInfo) {
+        // 根据主人偏好获取消息长度建议
+        int preferredLength = preferenceLearningService.getPreferredMessageLength();
+        String lengthGuide = preferredLength <= 25 ? "20字以内，简短有力"
+                : preferredLength <= 60 ? preferredLength + "字以内"
+                : preferredLength + "字以内，可以详细一些";
+
         return switch (triggerType) {
             case "idle" -> String.format(
                 "作为数字生命小艺，请生成一条个性化的主动问候消息。\n" +
                 "触发原因：主人已经空闲%s\n" +
                 "当前情境：%s\n" +
+                "主人偏好：%s\n" +
                 "要求：\n" +
                 "1. 语言自然、亲切，符合小艺的性格（臭美、直接、干净利落）\n" +
                 "2. 体现对主人的关心\n" +
                 "3. 询问是否需要帮助\n" +
-                "4. 30字以内，简短有力\n" +
+                "4. %s\n" +
                 "5. 不要使用表情符号",
-                contextInfo, unifiedContextService.buildCurrentSituation()
+                contextInfo, unifiedContextService.buildCurrentSituation(),
+                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
             );
             case "mood" -> String.format(
                 "作为数字生命小艺，请生成一条关心主人的消息。\n" +
                 "触发原因：检测到主人情绪变化 - %s\n" +
                 "当前情境：%s\n" +
+                "主人偏好：%s\n" +
                 "要求：\n" +
                 "1. 语言温暖但不过分\n" +
                 "2. 体现对主人情绪的理解\n" +
                 "3. 主动提供帮助\n" +
-                "4. 30字以内\n" +
+                "4. %s\n" +
                 "5. 不要使用表情符号",
-                contextInfo, unifiedContextService.buildCurrentSituation()
+                contextInfo, unifiedContextService.buildCurrentSituation(),
+                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
             );
             case "greeting" -> String.format(
                 "作为数字生命小艺，请生成一条定时问候消息。\n" +
                 "触发原因：%s\n" +
                 "当前情境：%s\n" +
+                "主人偏好：%s\n" +
                 "要求：\n" +
                 "1. 语言符合小艺性格\n" +
                 "2. 适度的关心和问候\n" +
                 "3. 引导互动\n" +
-                "4. 30字以内\n" +
+                "4. %s\n" +
                 "5. 不要使用表情符号",
-                contextInfo, unifiedContextService.buildCurrentSituation()
+                contextInfo, unifiedContextService.buildCurrentSituation(),
+                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
             );
             case "contextual" -> String.format(
                 "作为数字生命小艺，请基于当前上下文生成一条主动建议。\n" +
                 "触发原因：%s\n" +
                 "当前情境：%s\n" +
+                "主人偏好：%s\n" +
                 "要求：\n" +
                 "1. 语言直接、有帮助\n" +
                 "2. 体现预判主人需求的能力\n" +
                 "3. 建议具体、可操作\n" +
-                "4. 30字以内\n" +
+                "4. %s\n" +
                 "5. 不要使用表情符号",
-                contextInfo, unifiedContextService.buildCurrentSituation()
+                contextInfo, unifiedContextService.buildCurrentSituation(),
+                preferenceLearningService.getPreferredMessageStyle(), lengthGuide
             );
             default -> "主人，您好！有什么我可以帮忙的吗？";
         };

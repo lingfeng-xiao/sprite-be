@@ -15,7 +15,7 @@
 | ID | 需求 | 状态 | 来源 |
 |----|------|------|------|
 | S2-1 | 主人响应追踪 | ✅ done | Sprint-S2 |
-| S2-2 | 交互偏好学习 | todo | Sprint-S2 |
+| S2-2 | 交互偏好学习 | ✅ done | Sprint-S2 |
 | S2-3 | 反馈调整机制 | todo | Sprint-S2 |
 | S2-4 | 情绪响应模型 | todo | Sprint-S2 |
 | S3-1 | 情绪历史追踪 | todo | Sprint-S3 |
@@ -137,7 +137,7 @@
 
 **所属阶段**: S2 - 主人反馈学习
 **优先级**: P1
-**状态**: todo
+**状态**: done
 
 **背景/目标**: 追踪主人对主动消息的响应，用于学习
 
@@ -152,6 +152,32 @@
 **涉及文件**:
 - `ProactiveService.java`
 - `OwnerModel.java`
+- `FeedbackTrackerService.java` (新增)
+
+---
+
+### S2-2: 交互偏好学习
+
+**所属阶段**: S2 - 主人反馈学习
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 学习主人交互偏好，调整主动消息策略
+
+**实现内容**:
+1. 分析主人对话风格（简短/详细/中性）
+2. 记录主人最常用的交互时间
+3. 学习主人对不同类型消息的响应率
+4. 根据偏好调整消息长度和发送时机
+
+**依赖**: S2-1 (FeedbackTrackerService)
+**验收标准**: 能根据主人偏好调整消息长度和发送时机
+
+**涉及文件**:
+- `InteractionPreferenceLearningService.java` (新增)
+- `ProactiveService.java` (修改)
+- `UnifiedContextService.java` (修改)
+- `SpriteController.java` (修改)
 
 ---
 
