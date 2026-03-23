@@ -100,6 +100,7 @@
 | D10 | 为EmotionHistoryService添加单元测试 | ✅ done | 循环改进 |
 | D11 | 为FeedbackTrackerService添加单元测试 | ✅ done | 循环改进 |
 | D12 | 为MemoryConsolidationService添加单元测试 | ✅ done | 循环改进 |
+| D13 | 为InteractionPreferenceLearningService添加单元测试 | ✅ done | 循环改进 |
 
 ---
 

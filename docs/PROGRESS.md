@@ -172,6 +172,7 @@
 - 2026-03-24: 新增 `EmotionHistoryServiceTest.java` - 25个单元测试 (情绪历史服务完整覆盖)
 - 2026-03-24: 新增 `FeedbackTrackerServiceTest.java` - 27个单元测试 (主人反馈追踪服务完整覆盖)
 - 2026-03-24: 新增 `MemoryConsolidationServiceTest.java` - 18个单元测试 (记忆整合服务完整覆盖)
+- 2026-03-24: 新增 `InteractionPreferenceLearningServiceTest.java` - 20个单元测试 (交互偏好学习服务)
 
 ---
 
