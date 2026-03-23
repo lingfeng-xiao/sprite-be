@@ -29,6 +29,7 @@
    - [5.8 HotReloadConfigService](#58-hotreloadconfigservice-s11)
    - [5.9 PerformanceMonitorService](#59-performancemonitorservice-s11)
    - [5.10 ApiDocService](#510-apidocservice-s11)
+   - [5.11 MultiDeviceCoordinationService](#511-multidevicecoordinationservice-s9)
 6. [Sensors](#6-sensors)
    - [6.1 RealPlatformSensor](#61-realplatformsensor)
    - [6.2 RealUserSensor](#62-realusersensor)
@@ -688,6 +689,24 @@ Automated API documentation generation.
 ```java
 ApiEndpointDoc(path, method, summary, description, tags, parameters, response)
 ApiDocumentation(title, version, generatedAt, services, endpoints, changeHistory)
+```
+
+### 5.11 MultiDeviceCoordinationService (S9)
+
+Multi-device coordination and state synchronization.
+
+**File**: `src/main/java/com/lingfeng/sprite/service/MultiDeviceCoordinationService.java`
+
+**Features**:
+- Device registration and state tracking
+- Device-to-device messaging
+- State synchronization across devices
+- Message types: HEARTBEAT, STATE_SYNC, COMMAND, QUERY
+
+**Key Types**:
+```java
+DeviceInfo(deviceId, deviceName, deviceType, ipAddress, lastSeen, status)
+CoordinationMessage(id, sourceDevice, targetDevice, type, content, timestamp, status)
 ```
 
 ---
