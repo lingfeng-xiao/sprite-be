@@ -105,6 +105,30 @@
 
 ---
 
+## Sprint-S4: 记忆GitHub持久化
+
+### 阶段目标
+1. S4-1: 定时导出任务
+
+### 任务状态
+
+| ID | 任务 | 状态 | 负责人 | 开始日期 | 完成日期 |
+|----|------|------|--------|----------|----------|
+| S4-1 | 定时导出任务 | ✅ done | - | 2026-03-23 | 2026-03-23 |
+
+### 完成内容
+- S4-1:
+  - 新增 `GitHubBackupService.java` - GitHub备份服务
+  - 使用HttpClient5进行GitHub API调用
+  - 支持定时备份记忆文件到GitHub仓库
+  - 维护备份索引记录
+  - 新增 `/api/sprite/backup` 端点 - 手动触发备份
+  - 新增 `/api/sprite/backup/index` 端点 - 获取备份索引
+  - 新增 `/api/sprite/backup/snapshot` 端点 - 获取记忆快照
+  - 新增 `/api/sprite/backup/status` 端点 - 获取备份状态
+
+---
+
 ## Sprint-S1: 可靠性加固
 
 ### 阶段目标

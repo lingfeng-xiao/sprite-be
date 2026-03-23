@@ -22,7 +22,7 @@
 | S3-2 | 周内模式识别 | ✅ done | Sprint-S3 |
 | S3-3 | 时间模式预测 | ✅ done | Sprint-S3 |
 | S3-4 | 时机优化 | ✅ done | Sprint-S3 |
-| S4-1 | 定时导出任务 | todo | Sprint-S4 |
+| S4-1 | 定时导出任务 | ✅ done | Sprint-S4 |
 | S4-2 | GitHub API集成 | todo | Sprint-S4 |
 | S4-3 | 版本回溯支持 | todo | Sprint-S4 |
 | S4-4 | 冲突处理 | todo | Sprint-S4 |
@@ -314,6 +314,29 @@
 **涉及文件**:
 - `ProactiveService.java` (增强 - 集成情绪模式预测)
 - `EmotionHistoryService.java` (引用 - 获取联系分数)
+
+---
+
+### S4-1: 定时导出任务
+
+**所属阶段**: S4 - 记忆GitHub持久化
+**优先级**: P1
+**状态**: done
+
+**背景/目标**: 将记忆数据定期备份到GitHub，实现持久化和版本管理
+
+**实现内容**:
+1. 创建 GitHubBackupService 处理GitHub API交互
+2. 定时将记忆文件（情景/语义/程序记忆）备份到GitHub仓库
+3. 维护备份索引记录
+4. 提供手动触发备份API
+
+**依赖**: 无
+**验收标准**: 能将记忆备份到GitHub并可通过API查询备份状态
+
+**涉及文件**:
+- `GitHubBackupService.java` (新增 - GitHub备份服务)
+- `SpriteController.java` (修改 - 添加备份API端点)
 
 ---
 

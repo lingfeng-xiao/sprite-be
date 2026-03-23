@@ -12,6 +12,7 @@ import com.lingfeng.sprite.EvolutionEngine;
 import com.lingfeng.sprite.MemorySystem;
 import com.lingfeng.sprite.Sprite;
 import com.lingfeng.sprite.service.FeedbackTrackerService;
+import com.lingfeng.sprite.service.GitHubBackupService;
 import com.lingfeng.sprite.service.HealthMonitorService;
 import com.lingfeng.sprite.service.InteractionPreferenceLearningService;
 import com.lingfeng.sprite.service.EmotionHistoryService;
@@ -31,19 +32,22 @@ public class SpriteController {
     private final FeedbackTrackerService feedbackTrackerService;
     private final InteractionPreferenceLearningService preferenceLearningService;
     private final EmotionHistoryService emotionHistoryService;
+    private final GitHubBackupService gitHubBackupService;
 
     public SpriteController(
             SpriteService spriteService,
             HealthMonitorService healthMonitorService,
             FeedbackTrackerService feedbackTrackerService,
             InteractionPreferenceLearningService preferenceLearningService,
-            EmotionHistoryService emotionHistoryService
+            EmotionHistoryService emotionHistoryService,
+            GitHubBackupService gitHubBackupService
     ) {
         this.spriteService = spriteService;
         this.healthMonitorService = healthMonitorService;
         this.feedbackTrackerService = feedbackTrackerService;
         this.preferenceLearningService = preferenceLearningService;
         this.emotionHistoryService = emotionHistoryService;
+        this.gitHubBackupService = gitHubBackupService;
     }
 
     /**
@@ -204,6 +208,60 @@ public class SpriteController {
         EmotionHistoryService.EmotionTrend trend = emotionHistoryService.getEmotionTrend(days);
         return ResponseEntity.ok(trend);
     }
+
+    // ==================== S4: GitHub备份接口 ====================
+
+    /**
+     * S4-1: POST /api/sprite/backup - 手动触发GitHub备份
+     */
+    @PostMapping("/backup")
+    public ResponseEntity<GitHubBackupService.BackupResult> triggerBackup() {
+        GitHubBackupService.BackupResult result = gitHubBackupService.forceBackup();
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * S4-1: GET /api/sprite/backup/index - 获取备份索引
+     */
+    @GetMapping("/backup/index")
+    public ResponseEntity<GitHubBackupService.BackupIndex> getBackupIndex() {
+        try {
+            GitHubBackupService.BackupIndex index = gitHubBackupService.getBackupIndex();
+            return ResponseEntity.ok(index);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * S4-1: GET /api/sprite/backup/snapshot - 获取指定版本的记忆快照
+     */
+    @GetMapping("/backup/snapshot")
+    public ResponseEntity<GitHubBackupService.MemorySnapshot> getMemorySnapshot(
+            @RequestParam String timestamp) {
+        GitHubBackupService.MemorySnapshot snapshot = gitHubBackupService.getMemorySnapshot(timestamp);
+        return ResponseEntity.ok(snapshot);
+    }
+
+    /**
+     * S4-1: GET /api/sprite/backup/status - 获取备份状态
+     */
+    @GetMapping("/backup/status")
+    public ResponseEntity<BackupStatus> getBackupStatus() {
+        java.time.Instant lastBackup = gitHubBackupService.getLastBackupTime();
+        return ResponseEntity.ok(new BackupStatus(
+                lastBackup != null,
+                lastBackup != null ? lastBackup.toString() : null
+        ));
+    }
+
+    /**
+     * 备份状态
+     */
+    public record BackupStatus(
+            boolean backupEnabled,
+            String lastBackupTime
+    ) {}
 
     /**
      * POST /api/sprite/start - 启动 Sprite

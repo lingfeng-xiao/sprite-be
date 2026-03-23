@@ -13,7 +13,7 @@
 | S1 | 可靠性加固 | **✅ 已完成** |
 | S2 | 主人反馈学习 | **✅ 已完成** |
 | S3 | 情绪时间模式 | **✅ 已完成** |
-| S4 | 记忆GitHub持久化 | 待开始 |
+| S4 | 记忆GitHub持久化 | **进行中** |
 | S5 | 传感器系统加固 | 待开始 |
 | S6 | 决策引擎增强 | 待开始 |
 | S7 | 动作系统扩展 | 待开始 |
@@ -21,7 +21,7 @@
 | S9 | 感知系统扩展 | 待开始 |
 | S10 | 可观测性建设 | 待开始 |
 
-**整体进度**: 70% (S1完成 + S2完成 + S3全部完成)
+**整体进度**: 75% (S1完成 + S2完成 + S3完成 + S4-1完成)
 
 ---
 
@@ -100,6 +100,22 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 - 添加 `getTimingAdvice()` - 获取时机建议
 - 优化 `shouldProactivelyContact()` - 使用综合时机评估
 
+
+---
+
+## Sprint-S4 完成内容
+
+### S4-1: 定时导出任务 ✅
+- 新增 `GitHubBackupService.java` - GitHub备份服务
+- 使用HttpClient5进行GitHub API调用
+- 支持定时备份记忆文件到GitHub仓库
+- 维护备份索引记录
+- 新增 `/api/sprite/backup` 端点 - 手动触发备份
+- 新增 `/api/sprite/backup/index` 端点 - 获取备份索引
+- 新增 `/api/sprite/backup/snapshot` 端点 - 获取记忆快照
+- 新增 `/api/sprite/backup/status` 端点 - 获取备份状态
+
+
 ---
 
 ## Sprint-S1 完成内容
@@ -141,6 +157,8 @@ S2-1 (主人响应追踪)、S2-2 (交互偏好学习)、S2-3 (反馈调整机制
 | `InteractionPreferenceLearningService.java` | 新增(S2-2) | 交互偏好学习服务 |
 | `EmotionHistoryService.java` | 新增+增强(S3-1,S3-2) | 情绪历史服务 + 周模式分析 |
 | `WorldBuilder.java` | 修改(S3-1) | 添加情绪记录回调 |
+| `GitHubBackupService.java` | 新增(S4-1) | GitHub备份服务 |
+| `MemoryPersistenceService.java` | 引用(S4-1) | 记忆持久化服务 |
 | `MinMaxLlmReasoner.java` | 修改(S1) | 失败追踪和降级处理 |
 | `SpriteController.java` | 修改(S1,S2,S3) | S1健康检查; S2反馈和偏好端点; S3情绪API |
 | `ProactiveService.java` | 修改(S2) | 集成反馈追踪和偏好学习 |
