@@ -2,6 +2,7 @@
 build/
 target/
 .m2-local/
+deploy/
 .gradle/
 *.class
 *.jar
