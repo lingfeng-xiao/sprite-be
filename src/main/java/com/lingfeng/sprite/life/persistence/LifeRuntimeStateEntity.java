@@ -16,19 +16,19 @@ public class LifeRuntimeStateEntity {
     private Long id;
 
     @Lob
-    @Column(name = "identity_json", nullable = false)
+    @Column(name = "identity_json", nullable = false, columnDefinition = "LONGTEXT")
     private String identityJson;
 
     @Lob
-    @Column(name = "self_json", nullable = false)
+    @Column(name = "self_json", nullable = false, columnDefinition = "LONGTEXT")
     private String selfJson;
 
     @Lob
-    @Column(name = "relationship_json", nullable = false)
+    @Column(name = "relationship_json", nullable = false, columnDefinition = "LONGTEXT")
     private String relationshipJson;
 
     @Lob
-    @Column(name = "goals_json", nullable = false)
+    @Column(name = "goals_json", nullable = false, columnDefinition = "LONGTEXT")
     private String goalsJson;
 
     @Column(name = "updated_at", nullable = false)

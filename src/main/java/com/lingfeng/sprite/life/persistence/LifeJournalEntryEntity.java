@@ -25,11 +25,11 @@ public class LifeJournalEntryEntity {
     private String title;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String detail;
 
     @Lob
-    @Column(name = "payload_json")
+    @Column(name = "payload_json", columnDefinition = "LONGTEXT")
     private String payloadJson;
 
     @Column(name = "created_at", nullable = false)

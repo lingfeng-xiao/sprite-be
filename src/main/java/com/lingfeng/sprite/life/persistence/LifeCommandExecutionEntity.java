@@ -25,29 +25,29 @@ public class LifeCommandExecutionEntity {
     private String commandType;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String content;
 
     @Lob
-    @Column(name = "context_json")
+    @Column(name = "context_json", columnDefinition = "LONGTEXT")
     private String contextJson;
 
     @Column(nullable = false)
     private String source;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String summary;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String detail;
 
     @Column(nullable = false)
     private boolean success;
 
     @Lob
-    @Column(name = "impact_json")
+    @Column(name = "impact_json", columnDefinition = "LONGTEXT")
     private String impactJson;
 
     @Column(name = "created_at", nullable = false)
